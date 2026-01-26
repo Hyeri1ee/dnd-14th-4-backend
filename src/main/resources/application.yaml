@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: mvp
+  profiles:
+    active: local
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html #로컬에서 swagger 주소 : http://localhost:8080/swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      display-name: 'MVP API'
