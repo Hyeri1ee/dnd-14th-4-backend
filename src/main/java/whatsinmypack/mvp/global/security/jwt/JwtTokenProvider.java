@@ -1,5 +1,7 @@
 package whatsinmypack.mvp.global.security.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -7,6 +9,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.stereotype.Component;
 import whatsinmypack.mvp.domain.user.entity.User;
 
@@ -51,17 +55,22 @@ public class JwtTokenProvider {
     }
 
     // 토큰 검증
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
             token = removeBearerPrefix(token);
             Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token);
-            return true;
+        } catch (ExpiredJwtException e) {
+            log.warn("Expired JWT token: {}", e.getMessage());
+            throw new CredentialsExpiredException("토큰이 만료되었습니다");
+        } catch (JwtException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
+            throw new BadCredentialsException("비정상적인 토큰입니다");
         } catch (Exception e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
-            return false;
+            log.warn("Exception about JWT etc: {}", e.getMessage());
+            throw new IllegalArgumentException("토큰 관련하여 알 수 없는 예외가 발생했습니다");
         }
     }
 
