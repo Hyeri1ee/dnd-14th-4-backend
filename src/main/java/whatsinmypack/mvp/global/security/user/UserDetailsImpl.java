@@ -1,4 +1,4 @@
-package whatsinmypack.mvp.global.security;
+package whatsinmypack.mvp.global.security.user;
 
 import java.util.Collection;
 import java.util.Collections;
