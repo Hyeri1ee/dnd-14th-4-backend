@@ -68,7 +68,7 @@ public class JwtTokenProvider {
         } catch (JwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
             throw new BadCredentialsException("비정상적인 토큰입니다");
-        } catch (Exception e) {
+        } catch (Exception e) { // AuthenticationException으로 잡지 못하는 놈들 -> 별개의 예외 핸들러 필요함
             log.warn("Exception about JWT etc: {}", e.getMessage());
             throw new IllegalArgumentException("토큰 관련하여 알 수 없는 예외가 발생했습니다");
         }
