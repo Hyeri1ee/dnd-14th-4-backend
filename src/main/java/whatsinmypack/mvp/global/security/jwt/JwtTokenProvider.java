@@ -30,12 +30,12 @@ public class JwtTokenProvider {
     }
 
     // 토큰 생성
-    public String createToken(User user) {
+    public String createToken(String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + ACCESS_TOKEN_VALIDITY);
 
         return BEARER_PREFIX + Jwts.builder()
-                .subject(user.getEmail())
+                .subject(username)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)
