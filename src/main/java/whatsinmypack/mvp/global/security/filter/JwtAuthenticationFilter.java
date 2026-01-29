@@ -62,6 +62,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    // 특정 경로는 JWT 필터를 거치지 않음
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        return path.equals("/api/hello") ||
+                path.equals("/favicon.ico") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/api-docs") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/oauth2/");
+    }
+
     private Authentication createAuthentication(String username) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

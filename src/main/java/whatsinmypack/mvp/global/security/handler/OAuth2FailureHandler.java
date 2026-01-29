@@ -27,7 +27,6 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
             HttpServletRequest request,
             HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
-        super.onAuthenticationFailure(request, response, exception);
         log.error("OAuth 2.0 로그인 실패: {}", exception.getMessage());
 
         String errorMessage;
@@ -43,8 +42,12 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
             errorMessage = "알 수 없는 오류입니다.";
         }
 
+        log.error("=== OAuth2 로그인 실패 상세 정보 ===");
+        log.error("요청 URI: {}", request.getRequestURI());
+        log.error("예외 타입: {}", exception.getClass().getName());
+
         // sendResponseMsg 메소드 활용해서 로그인 실패 응답 보내기
-        sendResponseMsg(response, HttpServletResponse.SC_UNAUTHORIZED, new ApiResponse("로그인에 실패했습니다."));
+        sendResponseMsg(response, HttpServletResponse.SC_UNAUTHORIZED, new ApiResponse(errorMessage));
     }
 
     private void sendResponseMsg(HttpServletResponse response, int statusCode, Object responseBody) throws IOException {

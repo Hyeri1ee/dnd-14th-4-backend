@@ -24,9 +24,15 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        log.info("일단 여긴 오나?");
+
         OAuth2User oAuth2User = super.loadUser(userRequest);
         String oAUthClientName = userRequest.getClientRegistration().getClientName();
         OAuth2UserInfo userInfo = getOAuth2UserInfo(oAUthClientName, oAuth2User.getAttributes());
+
+        log.info("사용자 이메일: {}", userInfo.getEmail());
+        log.info("사용자 소셜 로그인 인증 제공처: {}", userInfo.getProvider().getClientName());
+        log.info("사용자 프로필 이미지: {}", userInfo.getProfileImage());
 
         // 로그인과 회원가입 동시 처리
         User user = userRepository.findByEmail(userInfo.getEmail()) // 있으면 로그인
@@ -60,10 +66,12 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
     // 사용자 엔티티 생성
     private User createUser(OAuth2UserInfo userInfo) {
-        return User.builder()
+        User user = User.builder()
                 .email(userInfo.getEmail())
                 .authProvider(userInfo.getProvider())
                 .profileImage(userInfo.getProfileImage())
                 .build();
+
+        return userRepository.save(user);
     }
 }

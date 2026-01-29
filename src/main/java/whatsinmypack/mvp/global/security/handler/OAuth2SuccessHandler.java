@@ -31,7 +31,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public void onAuthenticationSuccess(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain chain,
             Authentication authentication) throws IOException, ServletException {
         log.info("OAuth 2.0 로그인 성공");
         String username = ((UserDetailsImpl) authentication.getPrincipal()).getUsername();
