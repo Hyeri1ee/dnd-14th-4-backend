@@ -13,11 +13,22 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import whatsinmypack.mvp.domain.user.entity.User;
 
 @Getter
-@RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails, OAuth2User {
 
     private final User user;
     private final Map<String, Object> attributes;
+
+    // OAuth2.0 로그인용 생성자
+    public UserDetailsImpl(User user, Map<String, Object> attributes) {
+        this.user = user;
+        this.attributes = attributes;
+    }
+
+    // jwt 인증용 생성자
+    public UserDetailsImpl(User user) {
+        this.user = user;
+        this.attributes = null;
+    }
 
     // UserDetails 구현 메소드
     @Override
