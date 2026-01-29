@@ -1,4 +1,4 @@
-package whatsinmypack.mvp.domain.user;
+package whatsinmypack.mvp.domain.user.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
