@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import whatsinmypack.mvp.global.dto.ApiResponse;
 
 @Slf4j
 @Component
@@ -43,16 +44,14 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
         }
 
         // sendResponseMsg 메소드 활용해서 로그인 실패 응답 보내기
+        sendResponseMsg(response, HttpServletResponse.SC_UNAUTHORIZED, new ApiResponse("로그인에 실패했습니다."));
     }
 
     private void sendResponseMsg(HttpServletResponse response, int statusCode, Object responseBody) throws IOException {
         response.setStatus(statusCode);
         response.setContentType("application/json;charset=UTF-8");
-        try (PrintWriter writer = response.getWriter()) {
-            writer.print(new ObjectMapper().writeValueAsString(responseBody));
-            writer.flush();
-        } catch(IOException e){
-            log.error(e.getMessage());
-        }
+        PrintWriter writer = response.getWriter();
+        writer.print(new ObjectMapper().writeValueAsString(responseBody));
+        writer.flush();
     }
 }

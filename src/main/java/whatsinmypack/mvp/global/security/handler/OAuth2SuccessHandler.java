@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import whatsinmypack.mvp.global.dto.ApiResponse;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
@@ -42,16 +43,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .replaceAll("\\+", "%20"));
 
         // sendResponseMsg 메소드 활용해서 로그인 성공 응답 보내기
+        sendResponseMsg(response, HttpServletResponse.SC_OK, new ApiResponse("로그인에 성공했습니다."));
     }
 
     private void sendResponseMsg(HttpServletResponse response, int statusCode, Object responseBody) throws IOException {
         response.setStatus(statusCode);
         response.setContentType("application/json;charset=UTF-8");
-        try (PrintWriter writer = response.getWriter()) {
-            writer.print(new ObjectMapper().writeValueAsString(responseBody));
-            writer.flush();
-        } catch(IOException e){
-            log.error(e.getMessage());
-        }
+        PrintWriter writer = response.getWriter();
+        writer.print(new ObjectMapper().writeValueAsString(responseBody));
+        writer.flush();
     }
 }
