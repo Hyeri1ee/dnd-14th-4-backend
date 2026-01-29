@@ -2,6 +2,7 @@ package whatsinmypack.mvp.global.security.info;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import whatsinmypack.mvp.domain.user.entity.AuthProvider;
 
 @RequiredArgsConstructor
 public class KakaoUserInfo implements OAuth2UserInfo {
@@ -9,8 +10,8 @@ public class KakaoUserInfo implements OAuth2UserInfo {
     private final Map<String, Object> attributes;
 
     @Override
-    public String getProvider() {
-        return "kakao";
+    public AuthProvider getProvider() {
+        return AuthProvider.KAKAO;
     }
 
     @Override

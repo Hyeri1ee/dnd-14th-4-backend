@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import whatsinmypack.mvp.global.entity.BaseEntity;
@@ -12,12 +14,14 @@ import whatsinmypack.mvp.global.entity.BaseEntity;
 @Entity
 @Table(name = "users")
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class User extends BaseEntity {
     @Column(unique = true, nullable = false, length = 50)
     private String email;
 
-    @Column(nullable = false)
+    @Column(unique = true)
     private String nickname;
 
     @Column

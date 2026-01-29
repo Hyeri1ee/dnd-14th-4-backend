@@ -1,7 +1,9 @@
 package whatsinmypack.mvp.global.security.info;
 
+import whatsinmypack.mvp.domain.user.entity.AuthProvider;
+
 public interface OAuth2UserInfo {
-    String getProvider();
+    AuthProvider getProvider();
     String getEmail();
     String getProfileImage();
 }
