@@ -101,7 +101,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || '22' }}
           source: "docker-compose.yml"
-          target: "/home/${{ secrets.EC2_USERNAME }}/docker-compose.yml"
+          target: "/home/${{ secrets.EC2_USERNAME }}/"
+          strip_components: 0
       
       - name: ec2에 배포 (Blue-Green)
         uses: appleboy/ssh-action@v1.0.3
@@ -113,18 +114,39 @@ jobs:
           script: |
             cd /home/${{ secrets.EC2_USERNAME }}/
             
+            # docker-compose.yml 파일 확인 및 수정
+            if [ -d docker-compose.yml ]; then
+              echo "경고: docker-compose.yml이 디렉토리입니다. 제거하고 다시 복사합니다."
+              rm -rf docker-compose.yml
+            fi
+            
+            # docker-compose.yml 파일 존재 확인
+            if [ ! -f docker-compose.yml ]; then
+              echo "오류: docker-compose.yml 파일이 없습니다."
+              exit 1
+            fi
+            
+            echo "docker-compose.yml 파일 확인 완료"
+            ls -la docker-compose.yml
+            
             # docker compose 명령어 확인 (docker-compose-plugin 사용)
-            if docker compose version &> /dev/null; then
+            if sudo docker compose version &> /dev/null; then
+              DOCKER_COMPOSE_CMD="sudo docker compose"
+            elif docker compose version &> /dev/null; then
               DOCKER_COMPOSE_CMD="docker compose"
+            elif sudo docker-compose version &> /dev/null; then
+              DOCKER_COMPOSE_CMD="sudo docker-compose"
             elif docker-compose version &> /dev/null; then
               DOCKER_COMPOSE_CMD="docker-compose"
             else
-              DOCKER_COMPOSE_CMD="sudo docker compose"
+              echo "오류: docker compose를 찾을 수 없습니다."
+              exit 1
             fi
             
-            # Docker 로그인 (sudo 필요할 수 있음)
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin || \
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            echo "사용할 docker compose 명령어: $DOCKER_COMPOSE_CMD"
+            
+            # Docker 로그인 (sudo 사용)
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             
             # .env 파일 확인
             if [ ! -f .env ]; then
@@ -157,8 +179,8 @@ jobs:
             
             #기존 비활성 환경 컨테이너 정리 (포트 충돌 방지)
             echo "기존 $INACTIVE_ENV 컨테이너 정리 중..."
-            $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
-            $DOCKER_COMPOSE_CMD rm -f $INACTIVE_ENV 2>/dev/null || true
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml stop $INACTIVE_ENV 2>/dev/null || true
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml rm -f $INACTIVE_ENV 2>/dev/null || true
             
             #기존 컨테이너 이름으로 실행 중인 컨테이너 확인 및 제거
             if [ "$INACTIVE_ENV" = "blue" ]; then
@@ -175,23 +197,26 @@ jobs:
             
             #비활성 환경에 새 이미지 pull 및 시작
             echo "$INACTIVE_ENV 환경 이미지 pull 중..."
-            $DOCKER_COMPOSE_CMD pull $INACTIVE_ENV || sudo $DOCKER_COMPOSE_CMD pull $INACTIVE_ENV
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml pull $INACTIVE_ENV
             
             echo "$INACTIVE_ENV 환경 컨테이너 시작 중..."
-            $DOCKER_COMPOSE_CMD up -d $INACTIVE_ENV || sudo $DOCKER_COMPOSE_CMD up -d $INACTIVE_ENV
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml up -d $INACTIVE_ENV
             
             #컨테이너 시작 대기 (최대 60초)
             echo "컨테이너 시작 대기 중..."
             for i in {1..12}; do
-              if $DOCKER_COMPOSE_CMD ps $INACTIVE_ENV 2>/dev/null | grep -q "Up" || \
-                 sudo $DOCKER_COMPOSE_CMD ps $INACTIVE_ENV 2>/dev/null | grep -q "Up" || \
-                 sudo docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-                echo "$INACTIVE_ENV 컨테이너가 시작되었습니다."
-                break
+              if sudo docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+                CONTAINER_STATUS=$(sudo docker ps --format '{{.Status}}' --filter "name=${CONTAINER_NAME}")
+                if echo "$CONTAINER_STATUS" | grep -q "Up"; then
+                  echo "$INACTIVE_ENV 컨테이너가 시작되었습니다. 상태: $CONTAINER_STATUS"
+                  break
+                fi
               fi
               if [ $i -eq 12 ]; then
                 echo "컨테이너 시작 실패. 배포 중단."
-                $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || sudo $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
+                echo "컨테이너 로그 확인:"
+                sudo docker logs $CONTAINER_NAME 2>/dev/null || true
+                $DOCKER_COMPOSE_CMD -f docker-compose.yml stop $INACTIVE_ENV 2>/dev/null || true
                 exit 1
               fi
               echo "대기 중... ($i/12)"
@@ -213,7 +238,9 @@ jobs:
             
             if [ "$HEALTH_CHECKED" = false ]; then
               echo "$INACTIVE_ENV 환경 HTTP 헬스체크 실패. 배포 중단."
-              $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || sudo $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
+              echo "컨테이너 로그 확인:"
+              sudo docker logs $CONTAINER_NAME 2>/dev/null || true
+              $DOCKER_COMPOSE_CMD -f docker-compose.yml stop $INACTIVE_ENV 2>/dev/null || true
               exit 1
             fi
             
@@ -262,10 +289,10 @@ jobs:
             
             #컨테이너 상태 확인
             echo "컨테이너 상태 확인..."
-            $DOCKER_COMPOSE_CMD ps 2>/dev/null || sudo $DOCKER_COMPOSE_CMD ps 2>/dev/null || sudo docker ps
+            sudo docker ps
             
             #사용하지 않는 이미지 정리
-            sudo docker image prune -f || docker image prune -f
+            sudo docker image prune -f
       
       - name: 배포 검증
         uses: appleboy/ssh-action@v1.0.3
