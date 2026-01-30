@@ -24,15 +24,15 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        log.info("일단 여긴 오나?");
+//        log.info("일단 여긴 오나?");
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
         String oAUthClientName = userRequest.getClientRegistration().getClientName();
         OAuth2UserInfo userInfo = getOAuth2UserInfo(oAUthClientName, oAuth2User.getAttributes());
 
-        log.info("사용자 이메일: {}", userInfo.getEmail());
-        log.info("사용자 소셜 로그인 인증 제공처: {}", userInfo.getProvider().getClientName());
-        log.info("사용자 프로필 이미지: {}", userInfo.getProfileImage());
+//        log.info("사용자 이메일: {}", userInfo.getEmail());
+//        log.info("사용자 소셜 로그인 인증 제공처: {}", userInfo.getProvider().getClientName());
+//        log.info("사용자 프로필 이미지: {}", userInfo.getProfileImage());
 
         // 로그인과 회원가입 동시 처리
         User user = userRepository.findByEmail(userInfo.getEmail()) // 있으면 로그인
@@ -46,11 +46,12 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
     private OAuth2UserInfo getOAuth2UserInfo(String clientName, Map<String, Object> attributes) {
         AuthProvider provider = AuthProvider.fromClientName(clientName);
 
-        if (provider == AuthProvider.KAKAO) {
-            return new KakaoUserInfo(attributes);
-        } // 향후 추가 전략들 생성 예정(구글, 네이버...)
+        return switch (provider) {
+            case KAKAO -> new KakaoUserInfo(attributes);
+            // 향후 추가 전략들 생성 예정(구글, 네이버...)
 
-        throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인: " + clientName);
+            default -> throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인: " + clientName);
+        };
     }
 
     // 로그인 제공수단 상호 비교를 통한 중복 이메일 가입 방지
