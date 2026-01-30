@@ -12,7 +12,7 @@ import whatsinmypack.mvp.presentation.response.ApiResponse;
 @Tag(name = "Onboarding", description = "사용자 온보딩 과정의 요청, 응답 API")
 @RestController
 @RequestMapping("/api/v1/users")
-public class OnboardingController {
+public class UserOnboardingController {
 
     @GetMapping("/nickname")
     @Operation(summary = "사용자 닉네임 생성", description = "사용자 닉네임 유효성 및 중복 검증 API")
