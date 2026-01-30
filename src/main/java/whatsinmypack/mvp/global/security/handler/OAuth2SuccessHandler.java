@@ -38,8 +38,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 엑세스 토큰 생성 및 응답 헤더 삽입
         String accessToken = jwtTokenProvider.createToken(username);
-        response.addHeader(AUTHORIZATION_HEADER, URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
-                .replaceAll("\\+", "%20"));
+        response.addHeader(AUTHORIZATION_HEADER, accessToken);
 
         // sendResponseMsg 메소드 활용해서 로그인 성공 응답 보내기
         sendResponseMsg(response, HttpServletResponse.SC_OK, new ApiResponse("로그인에 성공했습니다."));
