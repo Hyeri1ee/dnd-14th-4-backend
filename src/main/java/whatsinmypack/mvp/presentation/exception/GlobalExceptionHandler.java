@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import whatsinmypack.mvp.domain.user.exception.DuplicateNicknameException;
 import whatsinmypack.mvp.presentation.response.ApiResponse;
 
 @Slf4j
@@ -18,6 +19,7 @@ import whatsinmypack.mvp.presentation.response.ApiResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 유효성 검증 불통과 예외
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ApiResponse handleValidationExceptions(MethodArgumentNotValidException e) {
@@ -35,5 +37,12 @@ public class GlobalExceptionHandler {
                 .orElse("잘못된 요청입니다");
 
         return new ApiResponse(message);
+    }
+
+    // 닉네임 중복 예외
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ApiResponse handleDuplicateNicknameException(DuplicateNicknameException e) {
+        return new ApiResponse(e.getMessage());
     }
 }
