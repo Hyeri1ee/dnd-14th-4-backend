@@ -112,7 +112,26 @@ jobs:
           port: ${{ secrets.EC2_PORT || '22' }}
           script: |
             cd /home/${{ secrets.EC2_USERNAME }}/
+            
+            # docker compose 명령어 확인 (docker-compose-plugin 사용)
+            if docker compose version &> /dev/null; then
+              DOCKER_COMPOSE_CMD="docker compose"
+            elif docker-compose version &> /dev/null; then
+              DOCKER_COMPOSE_CMD="docker-compose"
+            else
+              DOCKER_COMPOSE_CMD="sudo docker compose"
+            fi
+            
+            # Docker 로그인 (sudo 필요할 수 있음)
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin || \
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            
+            # .env 파일 확인
+            if [ ! -f .env ]; then
+              echo "경고: .env 파일이 없습니다. docker-compose.yml에서 환경변수를 확인하세요."
+            else
+              echo ".env 파일이 존재합니다."
+            fi
             
             #현재 활성 환경 확인 (기본값: blue)
             if [ -f .active-env ]; then
@@ -136,20 +155,43 @@ jobs:
             echo "현재 활성 환경: $ACTIVE_ENV"
             echo "배포할 환경: $INACTIVE_ENV"
             
+            #기존 비활성 환경 컨테이너 정리 (포트 충돌 방지)
+            echo "기존 $INACTIVE_ENV 컨테이너 정리 중..."
+            $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
+            $DOCKER_COMPOSE_CMD rm -f $INACTIVE_ENV 2>/dev/null || true
+            
+            #기존 컨테이너 이름으로 실행 중인 컨테이너 확인 및 제거
+            if [ "$INACTIVE_ENV" = "blue" ]; then
+              CONTAINER_NAME="mvp-backend-blue"
+            else
+              CONTAINER_NAME="mvp-backend-green"
+            fi
+            
+            if sudo docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+              echo "기존 컨테이너 $CONTAINER_NAME 제거 중..."
+              sudo docker stop $CONTAINER_NAME 2>/dev/null || true
+              sudo docker rm -f $CONTAINER_NAME 2>/dev/null || true
+            fi
+            
             #비활성 환경에 새 이미지 pull 및 시작
-            docker-compose pull $INACTIVE_ENV
-            docker-compose up -d $INACTIVE_ENV
+            echo "$INACTIVE_ENV 환경 이미지 pull 중..."
+            $DOCKER_COMPOSE_CMD pull $INACTIVE_ENV || sudo $DOCKER_COMPOSE_CMD pull $INACTIVE_ENV
+            
+            echo "$INACTIVE_ENV 환경 컨테이너 시작 중..."
+            $DOCKER_COMPOSE_CMD up -d $INACTIVE_ENV || sudo $DOCKER_COMPOSE_CMD up -d $INACTIVE_ENV
             
             #컨테이너 시작 대기 (최대 60초)
             echo "컨테이너 시작 대기 중..."
             for i in {1..12}; do
-              if docker-compose ps $INACTIVE_ENV | grep -q "Up"; then
+              if $DOCKER_COMPOSE_CMD ps $INACTIVE_ENV 2>/dev/null | grep -q "Up" || \
+                 sudo $DOCKER_COMPOSE_CMD ps $INACTIVE_ENV 2>/dev/null | grep -q "Up" || \
+                 sudo docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
                 echo "$INACTIVE_ENV 컨테이너가 시작되었습니다."
                 break
               fi
               if [ $i -eq 12 ]; then
                 echo "컨테이너 시작 실패. 배포 중단."
-                docker-compose stop $INACTIVE_ENV
+                $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || sudo $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
                 exit 1
               fi
               echo "대기 중... ($i/12)"
@@ -171,7 +213,7 @@ jobs:
             
             if [ "$HEALTH_CHECKED" = false ]; then
               echo "$INACTIVE_ENV 환경 HTTP 헬스체크 실패. 배포 중단."
-              docker-compose stop $INACTIVE_ENV
+              $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || sudo $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
               exit 1
             fi
             
@@ -206,7 +248,7 @@ jobs:
               else
                 echo "nginx 설정 테스트 실패. 백업에서 복원합니다."
                 sudo cp "$BACKUP_FILE" "$NGINX_UPSTREAM_CONF"
-                docker-compose stop $INACTIVE_ENV
+                $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || sudo $DOCKER_COMPOSE_CMD stop $INACTIVE_ENV 2>/dev/null || true
                 exit 1
               fi
             else
@@ -220,10 +262,10 @@ jobs:
             
             #컨테이너 상태 확인
             echo "컨테이너 상태 확인..."
-            docker-compose ps
+            $DOCKER_COMPOSE_CMD ps 2>/dev/null || sudo $DOCKER_COMPOSE_CMD ps 2>/dev/null || sudo docker ps
             
             #사용하지 않는 이미지 정리
-            docker image prune -f
+            sudo docker image prune -f || docker image prune -f
       
       - name: 배포 검증
         uses: appleboy/ssh-action@v1.0.3
