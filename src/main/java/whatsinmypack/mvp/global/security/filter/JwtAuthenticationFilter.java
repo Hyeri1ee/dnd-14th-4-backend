@@ -37,16 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("요청 URI : {}", request.getRequestURI());
         String tokenValue = request.getHeader(AUTHORIZATION_HEADER); // 엑세스 토큰 추출
 
-        // 엑세스 토큰 존재여부 검증
-        if (tokenValue == null || tokenValue.isBlank()) {
-            throw new AuthenticationCredentialsNotFoundException("Access Token이 존재하지 않습니다.");
-        }
-
-        // 토큰 디코딩 및 검증
-        String decodedToken = URLDecoder.decode(tokenValue, StandardCharsets.UTF_8);
-
         try {
-            jwtTokenProvider.validateToken(decodedToken);
+            // 엑세스 토큰 존재여부 검증
+            if (tokenValue == null || tokenValue.isBlank()) {
+                throw new AuthenticationCredentialsNotFoundException("Access Token이 존재하지 않습니다.");
+            }
+
+            // 토큰 디코딩 및 검증
+//            String decodedToken = URLDecoder.decode(tokenValue, StandardCharsets.UTF_8);
+//            jwtTokenProvider.validateToken(decodedToken);
+            jwtTokenProvider.validateToken(tokenValue);
 
             /**
              * 현재로써는 검증이 끝나면 바로 다시 응답 헤더에 엑세스 토큰 반납 처리
