@@ -79,9 +79,11 @@ public class SecurityConfig {
                 .failureHandler(oAuth2FailureHandler)); // OAuth2.0 리다이렉팅 URL 및 핸들러 등록
 
         http.addFilterBefore(
-                new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService),
+                new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService, jwtAuthenticationEntryPoint),
                 UsernamePasswordAuthenticationFilter.class); // jwtAuthenticationFilter 추가
 
+        // 등록만 해서는 자동 캐치가 안되고, 커스텀 필터가 앞서기 때문에 직접 의존성 주입이 필요하다
+        // 로그인 필터는 자동으로 가장 뒤로 가기 때문에 엔트리포인트가 인증 예외 캐치가 가능했던 것
         http.exceptionHandling(e -> e
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .accessDeniedHandler(jwtAccessDenyHandler)); // 인증 예외 및 인가 예외 핸들러 등록
