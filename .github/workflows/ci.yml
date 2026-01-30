@@ -43,3 +43,4 @@ jobs:
         run: |
           IMAGE_TAG="${DOCKERHUB_USERNAME}/mvp-backend:latest"
           docker buildx build --platform linux/amd64 --tag "$IMAGE_TAG" --push .
+
