@@ -34,8 +34,9 @@ public class CustomLogoutHandler implements LogoutHandler {
         String tokenValue = request.getHeader(AUTHORIZATION_HEADER);
 
         // 마지막까지 토큰 유효성 검증을 잊지말자:)
-        String decodedToken = URLDecoder.decode(tokenValue, StandardCharsets.UTF_8);
-        jwtTokenProvider.validateToken(decodedToken);
+//        String decodedToken = URLDecoder.decode(tokenValue, StandardCharsets.UTF_8);
+//        jwtTokenProvider.validateToken(decodedToken);
+        jwtTokenProvider.validateToken(tokenValue);
 
         // sendResponseMsg 메소드로 로그아웃 응답 보내주기
         try {
