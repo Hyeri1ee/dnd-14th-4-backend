@@ -81,6 +81,6 @@ public class TokenParseTest {
                 .header("Authorization", "INVALID_ACCESS_TOKEN"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("비정상적인 토큰입니다"));
+                .andExpect(jsonPath("$.message").value("인증에 실패하였습니다."));
     }
 }
