@@ -20,7 +20,7 @@ public class UserOnboardingService {
             throw new DuplicateNicknameException(nickname, "이미 사용 중인 닉네임입니다");
 
         userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundEntityException(User.class, "해당 사용자 DB 탐색 문제 발생"))
+                .orElseThrow(() -> new NotFoundEntityException(User.class, "해당 사용자를 찾을 수 없습니다"))
                 .updateNickname(nickname);
     }
 }
