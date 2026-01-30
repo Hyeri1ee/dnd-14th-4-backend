@@ -1,12 +1,12 @@
 name: CI
 
-#main, develop 브랜치에 푸시때만 작동
 on:
   push:
     branches:
       - main
       - develop
       - setting/cicd
+  workflow_dispatch: # 수동 실행 가능
 
 jobs:
   build:
