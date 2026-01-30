@@ -1,5 +1,6 @@
 package whatsinmypack.mvp.domain.user.entity;
 
+import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,11 +14,9 @@ public enum AuthProvider {
     private final String clientName;
 
     public static AuthProvider fromClientName(String clientName) {
-        for (AuthProvider provider : values()) {
-            if (provider.clientName.equalsIgnoreCase(clientName)) {
-                return provider;
-            }
-        }
-        throw new IllegalArgumentException("지원하지 않는 소셜 로그인: " + clientName);
+        return Arrays.stream(values())
+                .filter(p -> p.clientName.equalsIgnoreCase(clientName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("지원하지 않는 소셜 로그인: " + clientName));
     }
 }
