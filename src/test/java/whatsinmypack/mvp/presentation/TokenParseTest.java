@@ -70,7 +70,7 @@ public class TokenParseTest {
                 .header("Authorization", accessToken))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("인증을 뚫어낸 DND 14기 4조 화이팅"));
+                .andExpect(jsonPath("message").value("인증을 뚫어낸 DND 14기 4조 화이팅"));
     }
 
     @Test
@@ -81,6 +81,6 @@ public class TokenParseTest {
                 .header("Authorization", "INVALID_ACCESS_TOKEN"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("인증에 실패하였습니다."));
+                .andExpect(jsonPath("message").value("인증에 실패하였습니다."));
     }
 }
