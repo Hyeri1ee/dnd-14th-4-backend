@@ -2,10 +2,19 @@ spring:
   application:
     name: mvp
   profiles:
-    active: local
+    active: dev
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 20000
 
 server:
   port: 8080
+  tomcat:
+    threads:
+      max: 100
+      min-spare: 10
 
 
 springdoc:

@@ -1,0 +1,155 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+      - develop
+      - setting/cicd
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 코드 체크
+        uses: actions/checkout@v4
+      
+      - name: docker-compose.yml 수정
+        run: |
+          sed "s|yourusername|${{ secrets.DOCKERHUB_USERNAME }}|g" docker-compose.yml > docker-compose.deploy.yml
+      
+      - name: docker-compose ec2에 복사 
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || '22' }}
+          source: "docker-compose.deploy.yml"
+          target: "/home/${{ secrets.EC2_USERNAME }}/docker-compose.yml"
+      
+      - name: ec2에 배포 (Blue-Green)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || '22' }}
+          script: |
+            cd /home/${{ secrets.EC2_USERNAME }}/
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            
+            #현재 활성 환경 확인 (기본값: blue)
+            if [ -f .active-env ]; then
+              ACTIVE_ENV=$(cat .active-env)
+            else
+              ACTIVE_ENV="blue"
+              echo "blue" > .active-env
+            fi
+            
+            #비활성 환경 결정
+            if [ "$ACTIVE_ENV" = "blue" ]; then
+              INACTIVE_ENV="green"
+              ACTIVE_PORT="8080"
+              INACTIVE_PORT="8081"
+            else
+              INACTIVE_ENV="blue"
+              ACTIVE_PORT="8081"
+              INACTIVE_PORT="8080"
+            fi
+            
+            echo "현재 활성 환경: $ACTIVE_ENV"
+            echo "배포할 환경: $INACTIVE_ENV"
+            
+            #비활성 환경에 새 이미지 pull 및 시작
+            docker-compose pull $INACTIVE_ENV
+            docker-compose up -d $INACTIVE_ENV
+            
+            #컨테이너 시작 대기 (최대 60초)
+            echo "컨테이너 시작 대기 중..."
+            for i in {1..12}; do
+              if docker-compose ps $INACTIVE_ENV | grep -q "Up"; then
+                echo "$INACTIVE_ENV 컨테이너가 시작되었습니다."
+                break
+              fi
+              if [ $i -eq 12 ]; then
+                echo "컨테이너 시작 실패. 배포 중단."
+                docker-compose stop $INACTIVE_ENV
+                exit 1
+              fi
+              echo "대기 중... ($i/12)"
+              sleep 5
+            done
+            
+            #HTTP 헬스체크 (/api/hello 엔드포인트)
+            echo "HTTP 헬스체크 시작..."
+            HEALTH_CHECKED=false
+            for i in {1..10}; do
+              if curl -f http://localhost:$INACTIVE_PORT/api/hello > /dev/null 2>&1; then
+                echo "$INACTIVE_ENV 환경 HTTP 헬스체크 성공 (/api/hello)"
+                HEALTH_CHECKED=true
+                break
+              fi
+              echo "헬스체크 재시도 중... ($i/10)"
+              sleep 3
+            done
+            
+            if [ "$HEALTH_CHECKED" = false ]; then
+              echo "$INACTIVE_ENV 환경 HTTP 헬스체크 실패. 배포 중단."
+              docker-compose stop $INACTIVE_ENV
+              exit 1
+            fi
+            
+            # nginx upstream 설정 전환
+            echo "nginx upstream 설정 전환 중..."
+            
+            # myapp.conf 파일 경로
+            NGINX_UPSTREAM_CONF="/etc/nginx/conf.d/myapp.conf"
+            
+            if [ -f "$NGINX_UPSTREAM_CONF" ]; then
+              echo "nginx upstream 설정 파일 발견: $NGINX_UPSTREAM_CONF"
+              
+              # 백업 생성
+              BACKUP_FILE="${NGINX_UPSTREAM_CONF}.backup.$(date +%Y%m%d_%H%M%S)"
+              sudo cp "$NGINX_UPSTREAM_CONF" "$BACKUP_FILE"
+              
+              # upstream 블록 내의 server 포트를 전환
+              if [ "$INACTIVE_ENV" = "blue" ]; then
+                # blue(8080)로 전환
+                sudo sed -i 's|server localhost:8081;|server localhost:8080;|g' "$NGINX_UPSTREAM_CONF"
+                echo "nginx upstream을 localhost:8080 (blue)로 전환"
+              else
+                # green(8081)로 전환
+                sudo sed -i 's|server localhost:8080;|server localhost:8081;|g' "$NGINX_UPSTREAM_CONF"
+                echo "nginx upstream을 localhost:8081 (green)로 전환"
+              fi
+              
+              # nginx 설정 테스트 및 reload
+              if sudo nginx -t; then
+                sudo nginx -s reload || sudo systemctl reload nginx
+                echo "nginx upstream이 $INACTIVE_ENV 환경으로 전환되었습니다."
+              else
+                echo "nginx 설정 테스트 실패. 백업에서 복원합니다."
+                sudo cp "$BACKUP_FILE" "$NGINX_UPSTREAM_CONF"
+                docker-compose stop $INACTIVE_ENV
+                exit 1
+              fi
+            else
+              echo "nginx upstream 설정 파일을 찾을 수 없습니다: $NGINX_UPSTREAM_CONF"
+              echo "수동으로 nginx 설정을 확인하고 upstream을 $INACTIVE_PORT로 변경하세요."
+            fi
+            
+            # 활성 환경 업데이트
+            echo "$INACTIVE_ENV" > .active-env
+            echo "활성 환경이 $INACTIVE_ENV로 전환되었습니다."
+            
+            # 이전 활성 환경 종료 (선택사항 - 롤백을 위해 유지할 수도 있음)
+            # docker-compose stop $ACTIVE_ENV
+            
+            # 사용하지 않는 이미지 정리
+            docker image prune -f
