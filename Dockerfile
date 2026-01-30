@@ -1,27 +1,25 @@
 FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /app
 
-#필요한 패키지 설치
-RUN apk add --no-cache bash curl unzip
+# 필요한 패키지 설치
+RUN apk add --no-cache bash
 
-#Gradle 설치
-ENV GRADLE_VERSION=8.10.2
-ENV GRADLE_HOME=/opt/gradle
-RUN curl -L https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -o gradle.zip && \
-    unzip gradle.zip && \
-    mv gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
-    rm gradle.zip
-ENV PATH="${GRADLE_HOME}/bin:${PATH}"
-
-COPY build.gradle settings.gradle ./
+# Gradle wrapper 파일 복사
+COPY gradlew ./
 COPY gradle ./gradle
+RUN chmod +x gradlew
 
-RUN gradle dependencies --no-daemon || true
+# Gradle 설정 파일 복사
+COPY build.gradle settings.gradle ./
 
+# 의존성 다운로드 (캐시 최적화)
+RUN ./gradlew dependencies --no-daemon || true
+
+# 소스 코드 복사
 COPY src ./src
 
 # 빌드
-RUN gradle build -x test --no-daemon
+RUN ./gradlew build -x test --no-daemon
 
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
