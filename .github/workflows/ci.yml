@@ -43,4 +43,18 @@ jobs:
         run: |
           IMAGE_TAG="${DOCKERHUB_USERNAME}/mvp-backend:latest"
           docker buildx build --platform linux/amd64 --tag "$IMAGE_TAG" --push .
+      
+      - name: CD 트리거
+        if: success()
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          event-type: deploy
+          client-payload: |
+            {
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}",
+              "branch": "${{ github.ref_name }}"
+            }
 
