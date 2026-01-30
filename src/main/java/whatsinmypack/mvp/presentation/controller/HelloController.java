@@ -1,4 +1,4 @@
-package whatsinmypack.mvp.presentation;
+package whatsinmypack.mvp.presentation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
-import whatsinmypack.mvp.global.dto.ApiResponse;
+import whatsinmypack.mvp.presentation.response.ApiResponse;
 
 @Slf4j
 @Component
