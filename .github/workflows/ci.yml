@@ -40,9 +40,4 @@ jobs:
       - name: 도커 이미지 생성 및 푸시
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            --tag ${DOCKERHUB_USERNAME}/mvp-backend:latest \
-            --push \
-            .
+        run: docker buildx build --platform linux/amd64 --tag ${DOCKERHUB_USERNAME}/mvp-backend:latest --push .
