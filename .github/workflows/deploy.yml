@@ -3,8 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - dev
-      - develop
+      - deploy #dev에서 병합된거만 deploy에 배포
   workflow_dispatch: #수동 실행 가능
 
 jobs:
@@ -13,11 +12,29 @@ jobs:
     #upstream 레포만 실행
     if: |
       github.repository == 'dnd-side-project/dnd-14th-4-backend' &&
-      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch')
+      (
+        github.event_name == 'push' ||
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+        github.event_name == 'workflow_dispatch'
+      )
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: application.yaml 파일 생성
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_YML }}" | base64 --decode > src/main/resources/application.yaml
+          cat src/main/resources/application.yaml
+          echo "application.yaml 파일 생성 완료"
+      
+      - name: application-dev.yml 파일 생성
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_DEV_YML }}" | base64 --decode > src/main/resources/application-dev.yml
+          cat src/main/resources/application-dev.yml
+          echo "application-dev.yml 파일 생성 완료"
       
       - name: JDK 25 설치
         uses: actions/setup-java@v4
@@ -53,7 +70,11 @@ jobs:
     #upstream 레포만 실행
     if: |
       github.repository == 'dnd-side-project/dnd-14th-4-backend' &&
-      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch')
+      (
+        (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop')) ||
+        (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+        github.event_name == 'workflow_dispatch'
+      )
     
     steps:
       - name: 코드 체크
