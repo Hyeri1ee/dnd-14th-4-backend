@@ -16,7 +16,6 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     #upstream 레포만 실행
-    # push 이벤트 또는 merge된 PR 또는 수동 실행
     if: |
       github.repository == 'dnd-side-project/dnd-14th-4-backend' &&
       (
@@ -61,7 +60,6 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     #upstream 레포만 실행
-    # push 이벤트 또는 merge된 PR 또는 수동 실행
     if: |
       github.repository == 'dnd-side-project/dnd-14th-4-backend' &&
       (
