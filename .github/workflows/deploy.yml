@@ -28,6 +28,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: application.yml 파일 생성
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yaml
+          echo "application.yaml 파일 생성 완료"
+      
+      - name: application-dev.yml 파일 생성
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_DEV_YML }}" > src/main/resources/application-dev.yml
+          echo "application-dev.yml 파일 생성 완료"
+      
       - name: JDK 25 설치
         uses: actions/setup-java@v4
         with:
