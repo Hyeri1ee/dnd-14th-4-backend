@@ -3,13 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - dev
-      - develop
-  pull_request:
-    types: [closed]
-    branches:
-      - dev
-      - develop
+      - deploy #dev에서 병합된거만 deploy에 배포
   workflow_dispatch: #수동 실행 가능
 
 jobs:
