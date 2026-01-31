@@ -11,6 +11,10 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    #upstream 레포만 실행
+    if: |
+      github.repository == 'dnd-side-project/dnd-14th-4-backend' &&
+      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch')
     
     steps:
       - name: Checkout code
@@ -47,7 +51,10 @@ jobs:
   deploy:
     needs: ci
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/setting/cicd'
+    #upstream 레포만 실행
+    if: |
+      github.repository == 'dnd-side-project/dnd-14th-4-backend' &&
+      (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch')
     
     steps:
       - name: 코드 체크
