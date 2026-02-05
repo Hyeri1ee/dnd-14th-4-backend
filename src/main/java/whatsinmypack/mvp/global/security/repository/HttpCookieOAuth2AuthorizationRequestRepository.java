@@ -5,10 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.stereotype.Component;
 import whatsinmypack.mvp.global.security.util.CookieUtils;
 
-@Component
 public class HttpCookieOAuth2AuthorizationRequestRepository implements
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
