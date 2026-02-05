@@ -70,7 +70,6 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
         User user = User.builder()
                 .email(userInfo.getEmail())
                 .authProvider(userInfo.getProvider())
-                .profileImage(userInfo.getProfileImage())
                 .build();
 
         return userRepository.save(user);

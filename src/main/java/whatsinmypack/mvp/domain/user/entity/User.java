@@ -41,5 +41,5 @@ public class User extends BaseEntity {
     private AgeGroup ageGroup;
 
     @Column(length = 500)
-    private String profileImage;
+    private String profileImage; // 초기 생성 때는 하드코딩(디폴트 프로필 이미지) 적용
 }

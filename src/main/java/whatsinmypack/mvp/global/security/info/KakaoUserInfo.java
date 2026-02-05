@@ -19,11 +19,4 @@ public class KakaoUserInfo implements OAuth2UserInfo {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         return (String) kakaoAccount.get("email");
     }
-
-    @Override
-    public String getProfileImage() {
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-        return (String) profile.get("profile_image_url");
-    }
 }
