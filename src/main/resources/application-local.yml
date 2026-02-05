@@ -1,0 +1,68 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mvp
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      client:
+        # 프론트에서는 /oauth2/authorization/kakao 로 요청 보내야 함
+
+        # 회원탈퇴하려면 사용자별로 받아오는 카카오 엑세스토큰과 리프레시토큰 기반으로 연결끊기도 필요하겠는데...
+        # POST https://kapi.kakao.com/v1/user/unlink
+        # Authorization: Bearer {KAKAO_ACCESS_TOKEN}
+        # Content-Type: application/x-www-form-urlencoded;charset=utf-8
+        # https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api#unlink 이걸 참조하자
+        registration:
+          kakao:
+            client-id: cebd0459ff4bdc1af0bfbf5fb266ccc4
+            client-secret: CCM7j06SLnrDZGtjqrf5G3FgylxfC6FD
+            redirect-uri: http://localhost:8080/oauth2/callback/kakao #
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope:
+              - account_email
+
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+
+server:
+  port: 8080
+
+client:
+  url: http://localhost:3000
+
+logging:
+  level:
+    root: INFO
+    whatsinmypack.mvp: DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret:
+    key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
