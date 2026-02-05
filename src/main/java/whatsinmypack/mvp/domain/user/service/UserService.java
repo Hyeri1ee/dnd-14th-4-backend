@@ -16,11 +16,10 @@ public class UserService {
     private final KakaoApiService kakaoApiService;
 
     public void deleteUser(String username) {
-        Long kakaoId = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("사용자 이메일이 조회되지 않음"))
-                .getKakaoId();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("사용자 이메일이 조회되지 않음"));
 
-        kakaoApiService.unlink(kakaoId);
-        userRepository.deleteByEmail(username);
+        kakaoApiService.unlink(user.getKakaoId());
+        userRepository.delete(user);
     }
 }
