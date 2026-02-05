@@ -34,6 +34,7 @@ public class TokenParseTest {
     private JwtTokenProvider jwtTokenProvider;
 
     private String accessToken;
+    private User mockUser;
     private final String email = "test@test.com";
 
     @TestConfiguration
@@ -59,7 +60,15 @@ public class TokenParseTest {
 
     @BeforeEach
     void setUp() {
-        accessToken = jwtTokenProvider.createToken(email);
+        mockUser = User.builder()
+                .email(email)
+                .nickname("테스트")
+                .authProvider(AuthProvider.KAKAO)
+                .kakaoId(123456789L)
+                .profileImage("https://example.com/profile.jpg")
+                .build();
+
+        accessToken = jwtTokenProvider.createToken(mockUser);
     }
 
     @Test

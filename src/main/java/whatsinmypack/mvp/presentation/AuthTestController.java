@@ -12,7 +12,6 @@ import whatsinmypack.mvp.global.dto.ApiResponse;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthTestController {
-
     @Operation(summary = "인증 테스트", description = "인증 테스트 API(요청 헤더에 유효한 엑세스 토큰 요구)")
     @GetMapping
     public ResponseEntity<ApiResponse> test() {
