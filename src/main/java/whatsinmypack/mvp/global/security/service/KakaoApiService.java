@@ -39,6 +39,7 @@ public class KakaoApiService {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            //TODO: 전역 예외 핸들러 달기
             if (response.statusCode() == 200) {
                 log.info("카카오 로그아웃 성공: {}", response.body());
             } else {
@@ -65,6 +66,7 @@ public class KakaoApiService {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            //TODO: 전역 예외 핸들러 달기
             if (response.statusCode() == 200) {
                 log.info("카카오 연결 해제 성공: {}", response.body());
             } else {
