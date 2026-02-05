@@ -48,7 +48,6 @@ public class SecurityConfig {
     private final JwtAccessDenyHandler jwtAccessDenyHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomLogoutHandler customLogoutHandler;
-    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     // Authentication Manager
     @Bean
@@ -56,11 +55,11 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-//    // OAuth2.0 Login Cookie Data Bean
-//    @Bean
-//    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
-//        return new HttpCookieOAuth2AuthorizationRequestRepository();
-//    }
+    // OAuth2.0 Login Cookie Data Bean
+    @Bean
+    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+        return new HttpCookieOAuth2AuthorizationRequestRepository();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -83,7 +82,7 @@ public class SecurityConfig {
         http.oauth2Login(o -> o
                 .authorizationEndpoint(a -> a
                         .baseUri("/oauth2/authorization")
-                        .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)) //TODO: 이 레포를 구현해서 쿠키 저장 방식으로 추가 구축해야 한다...!
+                        .authorizationRequestRepository(cookieAuthorizationRequestRepository())) //TODO: 이 레포를 구현해서 쿠키 저장 방식으로 추가 구축해야 한다...!
                 .redirectionEndpoint(e -> e.baseUri("/oauth2/callback/*"))
                 .userInfoEndpoint(e -> e.userService(defaultOAuth2UserService))
                 .successHandler(oAuth2SuccessHandler)
