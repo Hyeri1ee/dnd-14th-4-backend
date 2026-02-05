@@ -58,8 +58,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable); // jwt 기반에서는 csrf 불필요
         http.cors(cors -> cors.configurationSource(corsConfigurationSource())); // 클라이언트 도메인 개방
+        /**
+         * OAuth2 로그인 중인데 세션을 “절대 만들지 마라”라고 해놔서
+         * Spring이 AuthorizationRequest를 저장하지 못했고,
+         * 그 결과 authorization_request_not_found가 발생한 것..?
+         */
         http.sessionManagement(sessionManagement ->
-                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 서버 세션 생성 방지
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)); // 배포 환경에서 로그인 세션 기억을 위한 설정 변경
 
         http.formLogin(AbstractHttpConfigurer::disable); // 폼 로그인 방식 불필요
         http.logout(l -> l
