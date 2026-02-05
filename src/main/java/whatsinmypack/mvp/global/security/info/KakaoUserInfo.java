@@ -19,4 +19,9 @@ public class KakaoUserInfo implements OAuth2UserInfo {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         return (String) kakaoAccount.get("email");
     }
+
+    @Override
+    public Long getId() {
+        return (Long) attributes.get("id");
+    }
 }

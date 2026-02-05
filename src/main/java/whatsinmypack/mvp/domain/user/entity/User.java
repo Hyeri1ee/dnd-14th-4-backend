@@ -24,6 +24,9 @@ public class User extends BaseEntity {
     @Column(unique = true)
     private String nickname;
 
+    @Column(unique = true)
+    private Long kakaoId; // 향후 별개의 테이블 분리를 생각해야 될까?
+
     @Column
     @Enumerated(EnumType.STRING)
     private Gender gender;

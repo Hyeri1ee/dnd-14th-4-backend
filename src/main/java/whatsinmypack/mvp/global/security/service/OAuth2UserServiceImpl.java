@@ -28,7 +28,8 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
         String oAUthClientName = userRequest.getClientRegistration().getClientName();
-        OAuth2UserInfo userInfo = getOAuth2UserInfo(oAUthClientName, oAuth2User.getAttributes());
+//        OAuth2UserInfo userInfo = getOAuth2UserInfo(oAUthClientName, oAuth2User.getAttributes());
+        OAuth2UserInfo userInfo = new KakaoUserInfo(oAuth2User.getAttributes()); // 우선은 카카오 로그인만 구현
 
 //        log.info("사용자 이메일: {}", userInfo.getEmail());
 //        log.info("사용자 소셜 로그인 인증 제공처: {}", userInfo.getProvider().getClientName());
@@ -69,6 +70,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
     private User createUser(OAuth2UserInfo userInfo) {
         User user = User.builder()
                 .email(userInfo.getEmail())
+                .kakaoId(userInfo.getId()) // 카카오 로그아웃 및 회원탈퇴용
                 .authProvider(userInfo.getProvider())
                 .build();
 
