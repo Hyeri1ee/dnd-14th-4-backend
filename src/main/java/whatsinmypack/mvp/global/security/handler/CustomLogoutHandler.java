@@ -43,11 +43,7 @@ public class CustomLogoutHandler implements LogoutHandler {
         log.info("로그아웃을 위한 토큰 파싱 성공");
 
         // 카카오 서비스도 로그아웃
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        Long kakaoId = userDetails.getUser().getKakaoId();
-
-        // 3. 카카오 로그아웃 시도
-        kakaoApiService.logout(kakaoId);
+        kakaoApiService.logout(jwtTokenProvider.getKakaoIdFromToken(tokenValue));
         log.info("로그아웃을 위한 카카오 서비스 로그아웃 성공");
 
         // sendResponseMsg 메소드로 로그아웃 응답 보내주기
