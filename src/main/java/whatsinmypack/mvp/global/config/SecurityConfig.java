@@ -28,6 +28,7 @@ import whatsinmypack.mvp.global.security.handler.JwtAuthenticationEntryPoint;
 import whatsinmypack.mvp.global.security.handler.OAuth2FailureHandler;
 import whatsinmypack.mvp.global.security.handler.OAuth2SuccessHandler;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
+import whatsinmypack.mvp.global.security.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +48,7 @@ public class SecurityConfig {
     private final JwtAccessDenyHandler jwtAccessDenyHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomLogoutHandler customLogoutHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     // Authentication Manager
     @Bean
@@ -54,17 +56,18 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
+//    // OAuth2.0 Login Cookie Data Bean
+//    @Bean
+//    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+//        return new HttpCookieOAuth2AuthorizationRequestRepository();
+//    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable); // jwt 기반에서는 csrf 불필요
         http.cors(cors -> cors.configurationSource(corsConfigurationSource())); // 클라이언트 도메인 개방
-        /**
-         * OAuth2 로그인 중인데 세션을 “절대 만들지 마라”라고 해놔서
-         * Spring이 AuthorizationRequest를 저장하지 못했고,
-         * 그 결과 authorization_request_not_found가 발생한 것..?
-         */
         http.sessionManagement(sessionManagement ->
-                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)); // 배포 환경에서 로그인 세션 기억을 위한 설정 변경
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 서버 세션 생성 방지
 
         http.formLogin(AbstractHttpConfigurer::disable); // 폼 로그인 방식 불필요
         http.logout(l -> l
@@ -78,6 +81,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
 
         http.oauth2Login(o -> o
+                .authorizationEndpoint(a -> a
+                        .baseUri("/oauth2/authorization")
+                        .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)) //TODO: 이 레포를 구현해서 쿠키 저장 방식으로 추가 구축해야 한다...!
                 .redirectionEndpoint(e -> e.baseUri("/oauth2/callback/*"))
                 .userInfoEndpoint(e -> e.userService(defaultOAuth2UserService))
                 .successHandler(oAuth2SuccessHandler)
