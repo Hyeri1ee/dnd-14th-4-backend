@@ -21,7 +21,7 @@ import whatsinmypack.mvp.application.UserProfileService;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false) // 스프링 시큐리티 필터체인 무효화
-public class UserProfileControllerTest {
+public class NicknameValidationTest {
 
     @Autowired
     private MockMvc mockMvc;
