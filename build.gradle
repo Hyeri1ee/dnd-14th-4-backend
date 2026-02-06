@@ -30,7 +30,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation "org.springframework.boot:spring-boot-starter"
 	//swagger
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0' // 버전 업(스프링 버전 호환 이슈)
 
 	compileOnly 'org.projectlombok:lombok'
 
