@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import whatsinmypack.mvp.domain.user.entity.AgeGroup;
 import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.global.entity.BaseEntity;
 
