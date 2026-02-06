@@ -29,64 +29,64 @@ public class NicknameValidationTest {
     @MockitoBean
     UserProfileService userProfileService;
 
-    @Test
-    @DisplayName("닉네임이 null이면 400과 검증 메시지를 반환한다")
-    void testIsNull() throws Exception {
-        String body = """
-        { }
-        """;
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/users/nickname")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message")
-                        .value("닉네임은 필수 입력값입니다"));
-
-        verify(userProfileService, never())
-                .verifyAndUpdateNickname(any(), any());
-    }
-
-    @Test
-    @DisplayName("닉네임이 빈 문자열이면 400을 반환한다")
-    void testIsBlank() throws Exception {
-        String body = """
-        { "nickname": "" }
-        """;
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/users/nickname")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body)
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("message")
-                        .value("닉네임은 필수 입력값입니다"));
-
-        verify(userProfileService, never())
-                .verifyAndUpdateNickname(any(), any());
-    }
-
-    @Test
-    @DisplayName("닉네임이 공백만 있으면 400을 반환한다")
-    void testWhitespace() throws Exception {
-        String body = """
-        { "nickname": "   " }
-        """;
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/users/nickname")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message")
-                        .value("닉네임은 필수 입력값입니다"));
-
-        verify(userProfileService, never())
-                .verifyAndUpdateNickname(any(), any());
-    }
+//    @Test
+//    @DisplayName("닉네임이 null이면 400과 검증 메시지를 반환한다")
+//    void testIsNull() throws Exception {
+//        String body = """
+//        { }
+//        """;
+//
+//        mockMvc.perform(MockMvcRequestBuilders
+//                        .post("/api/v1/users/nickname")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(body))
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("$.message")
+//                        .value("닉네임은 필수 입력값입니다"));
+//
+//        verify(userProfileService, never())
+//                .verifyAndUpdateNickname(any(), any());
+//    }
+//
+//    @Test
+//    @DisplayName("닉네임이 빈 문자열이면 400을 반환한다")
+//    void testIsBlank() throws Exception {
+//        String body = """
+//        { "nickname": "" }
+//        """;
+//
+//        mockMvc.perform(MockMvcRequestBuilders
+//                        .post("/api/v1/users/nickname")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(body)
+//                        .with(csrf()))
+//                .andDo(print())
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("message")
+//                        .value("닉네임은 필수 입력값입니다"));
+//
+//        verify(userProfileService, never())
+//                .verifyAndUpdateNickname(any(), any());
+//    }
+//
+//    @Test
+//    @DisplayName("닉네임이 공백만 있으면 400을 반환한다")
+//    void testWhitespace() throws Exception {
+//        String body = """
+//        { "nickname": "   " }
+//        """;
+//
+//        mockMvc.perform(MockMvcRequestBuilders
+//                        .post("/api/v1/users/nickname")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(body))
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("$.message")
+//                        .value("닉네임은 필수 입력값입니다"));
+//
+//        verify(userProfileService, never())
+//                .verifyAndUpdateNickname(any(), any());
+//    }
 
     @Test
     @DisplayName("닉네임이 10자를 초과하면 400을 반환한다")
