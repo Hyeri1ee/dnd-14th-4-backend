@@ -24,6 +24,9 @@ public class User extends BaseEntity {
     @Column(unique = true)
     private String nickname;
 
+    @Column(unique = true)
+    private Long kakaoId; // 향후 별개의 테이블 분리를 생각해야 될까?
+
     @Column
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -41,5 +44,5 @@ public class User extends BaseEntity {
     private AgeGroup ageGroup;
 
     @Column(length = 500)
-    private String profileImage;
+    private String profileImage; // 초기 생성 때는 하드코딩(디폴트 프로필 이미지) 적용
 }

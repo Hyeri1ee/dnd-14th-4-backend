@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
 import whatsinmypack.mvp.global.dto.ApiResponse;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
+import whatsinmypack.mvp.global.security.service.KakaoApiService;
+import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
 @Slf4j
 @Component
@@ -24,6 +26,7 @@ public class CustomLogoutHandler implements LogoutHandler {
     private static final String AUTHORIZATION_HEADER = "Authorization";
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final KakaoApiService kakaoApiService;
 
     @Override
     public void logout(
@@ -37,6 +40,11 @@ public class CustomLogoutHandler implements LogoutHandler {
 //        String decodedToken = URLDecoder.decode(tokenValue, StandardCharsets.UTF_8);
 //        jwtTokenProvider.validateToken(decodedToken);
         jwtTokenProvider.validateToken(tokenValue);
+        log.info("로그아웃을 위한 토큰 파싱 성공");
+
+        // 카카오 서비스도 로그아웃
+        kakaoApiService.logout(jwtTokenProvider.getKakaoIdFromToken(tokenValue));
+        log.info("로그아웃을 위한 카카오 서비스 로그아웃 성공");
 
         // sendResponseMsg 메소드로 로그아웃 응답 보내주기
         try {

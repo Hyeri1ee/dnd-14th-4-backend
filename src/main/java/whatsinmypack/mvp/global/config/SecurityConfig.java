@@ -28,6 +28,7 @@ import whatsinmypack.mvp.global.security.handler.JwtAuthenticationEntryPoint;
 import whatsinmypack.mvp.global.security.handler.OAuth2FailureHandler;
 import whatsinmypack.mvp.global.security.handler.OAuth2SuccessHandler;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
+import whatsinmypack.mvp.global.security.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -54,6 +55,12 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
+    // OAuth2.0 Login Cookie Data Bean
+    @Bean
+    public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+        return new HttpCookieOAuth2AuthorizationRequestRepository();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable); // jwt 기반에서는 csrf 불필요
@@ -73,6 +80,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
 
         http.oauth2Login(o -> o
+                .authorizationEndpoint(a -> a
+                        .baseUri("/oauth2/authorization")
+                        .authorizationRequestRepository(cookieAuthorizationRequestRepository())) //TODO: 이 레포를 구현해서 쿠키 저장 방식으로 추가 구축해야 한다...!
                 .redirectionEndpoint(e -> e.baseUri("/oauth2/callback/*"))
                 .userInfoEndpoint(e -> e.userService(defaultOAuth2UserService))
                 .successHandler(oAuth2SuccessHandler)

@@ -33,11 +33,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         log.info("OAuth 2.0 로그인 성공");
-        String username = ((UserDetailsImpl) authentication.getPrincipal()).getUsername();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String username = userDetails.getUsername();
         log.info("OAuth 2.0 로그인 ID: {}", username);
 
         // 엑세스 토큰 생성 및 응답 헤더 삽입
-        String accessToken = jwtTokenProvider.createToken(username);
+        String accessToken = jwtTokenProvider.createToken(userDetails.getUser());
         response.addHeader(AUTHORIZATION_HEADER, accessToken);
 
         // sendResponseMsg 메소드 활용해서 로그인 성공 응답 보내기

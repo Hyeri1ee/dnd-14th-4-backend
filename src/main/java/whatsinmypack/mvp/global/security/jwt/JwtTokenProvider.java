@@ -30,12 +30,13 @@ public class JwtTokenProvider {
     }
 
     // 토큰 생성
-    public String createToken(String username) {
+    public String createToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + ACCESS_TOKEN_VALIDITY);
 
         return BEARER_PREFIX + Jwts.builder()
-                .subject(username)
+                .subject(user.getEmail())
+                .claim("kakaoId", user.getKakaoId())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)
@@ -52,6 +53,18 @@ public class JwtTokenProvider {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    // 토큰에서 카카오 아이디 추출
+    public Long getKakaoIdFromToken(String token) {
+        token = removeBearerPrefix(token);
+
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("kakaoId", Long.class);
     }
 
     // 토큰 검증
