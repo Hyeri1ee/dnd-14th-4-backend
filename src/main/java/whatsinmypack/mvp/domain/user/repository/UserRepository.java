@@ -9,4 +9,5 @@ import whatsinmypack.mvp.domain.user.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     void deleteByEmail(String email);
+    boolean existsByNickname(String email);
 }

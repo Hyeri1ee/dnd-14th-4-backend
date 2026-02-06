@@ -25,7 +25,7 @@ import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TokenParseTest {
+public class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
