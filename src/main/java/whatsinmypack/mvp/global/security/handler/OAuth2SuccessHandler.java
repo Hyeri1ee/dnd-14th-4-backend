@@ -1,20 +1,17 @@
 package whatsinmypack.mvp.global.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import whatsinmypack.mvp.global.dto.ApiResponse;
+import whatsinmypack.mvp.presentation.response.ApiResponse;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 

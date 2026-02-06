@@ -45,4 +45,8 @@ public class User extends BaseEntity {
 
     @Column(length = 500)
     private String profileImage; // 초기 생성 때는 하드코딩(디폴트 프로필 이미지) 적용
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
 }
