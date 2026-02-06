@@ -2,6 +2,7 @@ package whatsinmypack.mvp.presentation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +33,7 @@ public class UserProfileController {
     @Operation(summary = "사용자 닉네임 생성 및 수정", description = "사용자 닉네임 유효성 및 중복 검증 API")
     @PostMapping("/nickname")
     public ApiResponse createUserNickname(
-            @RequestBody NicknameRequest request,
+            @Valid @RequestBody NicknameRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         userProfileService.verifyAndUpdateNickname(request.getNickname(), userDetails.getUser());
