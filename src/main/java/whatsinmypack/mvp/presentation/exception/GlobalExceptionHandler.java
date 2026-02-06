@@ -11,7 +11,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import whatsinmypack.mvp.domain.common.NotFoundEntityException;
 import whatsinmypack.mvp.domain.user.exception.DuplicateNicknameException;
 import whatsinmypack.mvp.presentation.response.ApiResponse;
 
@@ -19,13 +18,6 @@ import whatsinmypack.mvp.presentation.response.ApiResponse;
 @Priority(Integer.MAX_VALUE)
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    // 엔티티 조회 불능 예외
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NotFoundEntityException.class)
-    public ApiResponse handleNotFoundEntityException(NotFoundEntityException e) {
-        return new ApiResponse(e.getMessage());
-    }
 
     // 유효성 검증 불통과 예외
     @ResponseStatus(HttpStatus.BAD_REQUEST)

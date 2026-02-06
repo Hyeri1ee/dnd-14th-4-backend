@@ -10,13 +10,4 @@ import whatsinmypack.mvp.domain.user.repository.UserRepository;
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
-
-    private final UserRepository userRepository;
-
-    public void deleteUser(String username) {
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("사용자 이메일이 조회되지 않음"));
-
-        userRepository.delete(user);
-    }
 }
