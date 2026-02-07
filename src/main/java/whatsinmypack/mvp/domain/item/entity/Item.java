@@ -44,7 +44,7 @@ public class Item extends BaseEntity {
     private User user;//user_id FK
 
 
-    //ItemImage 고아 객체 함께 사라짐 정의
+    //ItemImage DB에서 자동 삭제
     @OneToMany(mappedBy = "item",
             cascade = CascadeType.ALL, //부모 영속성 작업 자식에 전파
             orphanRemoval = true) //부모 제거시 DB에서도 자식 삭제
@@ -54,6 +54,12 @@ public class Item extends BaseEntity {
     public void addImage(ItemImage image) {
         images.add(image);
         image.setItem(this);
+    }
+
+    //ItemImage 편의 메서드 : item에 item_image 삭제
+    public void removeImage(ItemImage image) {
+        images.remove(image);
+        image.setItem(null);
     }
 
 }
