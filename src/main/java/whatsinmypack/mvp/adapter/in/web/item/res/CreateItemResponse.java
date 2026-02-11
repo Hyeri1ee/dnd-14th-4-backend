@@ -1,4 +1,4 @@
-package whatsinmypack.mvp.adapter.in.web.item;
+package whatsinmypack.mvp.adapter.in.web.item.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import whatsinmypack.mvp.domain.item.entity.Item;

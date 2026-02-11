@@ -1,4 +1,4 @@
-package whatsinmypack.mvp.application.item;
+package whatsinmypack.mvp.application.item.create;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

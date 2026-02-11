@@ -1,13 +1,10 @@
-package whatsinmypack.mvp.application.item;
+package whatsinmypack.mvp.application.item.create;
 
 import whatsinmypack.mvp.domain.item.entity.Satisfaction;
 import whatsinmypack.mvp.domain.item.entity.UsePeriod;
 
 import java.util.List;
 
-/**
- * 아이템 생성 Use Case 입력
- */
 public record CreateItemCommand(
         Long userId,
         String brandName,
