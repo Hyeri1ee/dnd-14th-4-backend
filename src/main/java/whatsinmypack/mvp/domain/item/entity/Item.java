@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
+import whatsinmypack.mvp.domain.item.entity.value.ItemTag;
 import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.global.entity.BaseEntity;
 
@@ -48,7 +49,12 @@ public class Item extends BaseEntity {
     @OneToMany(mappedBy = "item",
             cascade = CascadeType.ALL, //부모 영속성 작업 자식에 전파
             orphanRemoval = true) //부모 제거시 DB에서도 자식 삭제
+    @Builder.Default
     private List<ItemImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ItemTag> tags = new ArrayList<>();
 
     //ItemImage 편의 메서드 : item에 item_image 추가
     public void addImage(ItemImage image) {
@@ -60,6 +66,11 @@ public class Item extends BaseEntity {
     public void removeImage(ItemImage image) {
         images.remove(image);
         image.setItem(null);
+    }
+
+    public void addTag(ItemTag tag) {
+        tags.add(tag);
+        tag.setItem(this);
     }
 
 }

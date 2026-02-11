@@ -21,4 +21,8 @@ public class ItemTag extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private Item item;
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
 }
