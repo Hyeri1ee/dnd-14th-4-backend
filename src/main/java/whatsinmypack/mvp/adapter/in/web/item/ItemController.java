@@ -53,6 +53,8 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateItemResponse.from(item));
     }
 
+    //ItemController - (web) -> ItemSumaryResponse
+    //ItemController - (db) -> 유스케이스(GetUserItemsUseCase) + 유스케이스 구현체(GetUserItemsService)-> 도메인과 db 연결 포트(ItemPersistencePort) + 포트 구현체(ItemPersistenceAdapter) -> db에 저장
     @Operation(summary = "내 아이템 전체 조회", description = "로그인한 유저의 인생 아이템 목록을 최신순으로 조회")
     @GetMapping
     public ResponseEntity<List<ItemSummaryResponse>> getMyItems(
