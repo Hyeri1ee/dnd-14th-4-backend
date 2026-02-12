@@ -20,8 +20,8 @@ import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
 import whatsinmypack.mvp.application.item.getlist.GetUserItemsUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
-
 import java.util.List;
+
 
 @Tag(name = "Item", description = "아이템 관련 컨트롤러")
 @RestController
