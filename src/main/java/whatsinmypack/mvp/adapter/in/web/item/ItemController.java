@@ -18,7 +18,7 @@ import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
-@Tag(name = "Item", description = "아이템 추가")
+@Tag(name = "Item", description = "아이템 관련 컨트롤러")
 @RestController
 @RequestMapping("/api/v1/items")
 @RequiredArgsConstructor
