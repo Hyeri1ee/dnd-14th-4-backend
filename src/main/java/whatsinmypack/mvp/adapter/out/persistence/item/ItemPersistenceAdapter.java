@@ -6,6 +6,7 @@ import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.item.port.ItemPersistencePort;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -21,5 +22,10 @@ public class ItemPersistenceAdapter implements ItemPersistencePort {
     @Override
     public List<Item> findByUserIdOrderByCreatedAtDesc(Long userId) {
         return itemJpaRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public Optional<Item> findById(Long id) {
+        return itemJpaRepository.findById(id);
     }
 }
