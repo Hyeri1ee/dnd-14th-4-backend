@@ -21,6 +21,8 @@ import java.util.List;
 @AllArgsConstructor
 public class Item extends BaseEntity {
 
+    @Version
+    private Long version;
 
     @Column(length = 25)
     private String title;//아이템 타이틀
@@ -71,6 +73,23 @@ public class Item extends BaseEntity {
     public void addTag(ItemTag tag) {
         tags.add(tag);
         tag.setItem(this);
+    }
+
+    public void update(String title, String brand, String review, Satisfaction satisfaction, UsePeriod usePeriod, String purchase) {
+        this.title = title;
+        this.brand = brand;
+        this.review = review;
+        this.satisfaction = satisfaction;
+        this.usePeriod = usePeriod;
+        this.purchase = purchase;
+    }
+
+    public void clearImages() {
+        this.images.clear();
+    }
+
+    public void clearTags() {
+        this.tags.clear();
     }
 
 }
