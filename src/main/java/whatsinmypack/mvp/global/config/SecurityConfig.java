@@ -77,9 +77,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/hello").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**", "/api/v1/items/**").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()
-
-
-
                 .anyRequest().authenticated());
 
         http.oauth2Login(o -> o
@@ -87,7 +84,6 @@ public class SecurityConfig {
                         .baseUri("/oauth2/authorization")
                         .authorizationRequestRepository(cookieAuthorizationRequestRepository())) //TODO: 이 레포를 구현해서 쿠키 저장 방식으로 추가 구축해야 한다...!
                 .redirectionEndpoint(e -> e.baseUri("/oauth2/callback/*"))
-
                 .userInfoEndpoint(e -> e.userService(defaultOAuth2UserService))
                 .successHandler(oAuth2SuccessHandler)
                 .failureHandler(oAuth2FailureHandler)); // OAuth2.0 리다이렉팅 URL 및 핸들러 등록
