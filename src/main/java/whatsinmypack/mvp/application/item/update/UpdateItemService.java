@@ -3,6 +3,7 @@ package whatsinmypack.mvp.application.item.update;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import whatsinmypack.mvp.domain.item.port.ImageStoragePort;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
 import whatsinmypack.mvp.domain.item.entity.value.ItemTag;
@@ -20,6 +21,7 @@ public class UpdateItemService implements UpdateItemUseCase {
     private static final int MAX_TAG_LENGTH = 10;
 
     private final ItemPersistencePort itemPersistencePort;
+    private final ImageStoragePort imageStoragePort;
 
     @Override
     public Item update(UpdateItemCommand command) {
@@ -41,9 +43,9 @@ public class UpdateItemService implements UpdateItemUseCase {
                 command.purchaseLocation()
         );
 
-        //이미지 업데이트
-        updateImages(item, command.reviewImagePaths());
-        
+        List<String> imagePaths = imageStoragePort.store(command.reviewImages());
+        updateImages(item, imagePaths);
+
         //태그 업데이트
         updateTags(item, command.tags());
 
@@ -57,7 +59,7 @@ public class UpdateItemService implements UpdateItemUseCase {
             throw new IllegalArgumentException("리뷰 이미지는 최대 " + MAX_REVIEW_IMAGES + "개까지 등록할 수 있습니다.");
         }
         for (String path : paths) {
-            item.addImage(ItemImage.builder().path(path).build());
+            item.addImage(ItemImage.fromPath(path));
         }
     }
 

@@ -21,7 +21,6 @@ import whatsinmypack.mvp.adapter.in.web.item.req.UpdateItemRequest;
 import whatsinmypack.mvp.adapter.in.web.item.res.CreateItemResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.ItemSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.UpdateItemResponse;
-import whatsinmypack.mvp.adapter.out.storage.ImageStorageAdapter;
 import whatsinmypack.mvp.application.item.create.CreateItemCommand;
 import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
 import whatsinmypack.mvp.application.item.getlist.GetUserItemsUseCase;
@@ -30,7 +29,6 @@ import whatsinmypack.mvp.application.item.update.UpdateItemUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
-import java.util.Collections;
 import java.util.List;
 
 
@@ -43,7 +41,6 @@ public class ItemController {
     private final CreateItemUseCase createItemUseCase;
     private final GetUserItemsUseCase getUserItemsUseCase;
     private final UpdateItemUseCase updateItemUseCase;
-    private final ImageStorageAdapter imageStorageAdapter;
 
     @Operation(summary = "아이템 추가", description = "request(JSON) + reviewImages(파일, 선택, 최대 5개)")
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -52,19 +49,13 @@ public class ItemController {
             @RequestPart("request") @Valid CreateItemRequest request,
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
-        //이미지 정보
-        List<String> imagePaths = (reviewImages != null && !reviewImages.isEmpty())
-                ? imageStorageAdapter.store(reviewImages)
-                : Collections.emptyList();
-
-        //그 외 정보들
         CreateItemCommand command = new CreateItemCommand(
                 userDetails.getUserId(),
                 request.brandName(),
                 request.productName(),
                 request.satisfaction(),
                 request.reviewText(),
-                imagePaths,
+                reviewImages,
                 request.tags(),
                 request.usePeriod(),
                 request.purchaseLocation()
@@ -81,12 +72,6 @@ public class ItemController {
             @RequestPart("request") @Valid UpdateItemRequest request,
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
-        //이미지 정보
-        List<String> imagePaths = (reviewImages != null && !reviewImages.isEmpty())
-                ? imageStorageAdapter.store(reviewImages)
-                : Collections.emptyList();
-
-        //그 외 정보들
         UpdateItemCommand command = new UpdateItemCommand(
                 itemId,
                 userDetails.getUserId(),
@@ -94,7 +79,7 @@ public class ItemController {
                 request.productName(),
                 request.satisfaction(),
                 request.reviewText(),
-                imagePaths,
+                reviewImages,
                 request.tags(),
                 request.usePeriod(),
                 request.purchaseLocation()
