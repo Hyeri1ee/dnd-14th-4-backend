@@ -1,6 +1,9 @@
 package whatsinmypack.mvp.adapter.in.web.item;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +45,13 @@ public class ItemController {
     private final GetUserItemsUseCase getUserItemsUseCase;
     private final UpdateItemUseCase updateItemUseCase;
 
-    @Operation(summary = "아이템 추가", description = "request(JSON) + reviewImages(파일, 선택, 최대 5개)")
+    @Operation(summary = "아이템 추가", description = "multipart/form-data: request(JSON) + reviewImages(이미지 파일, 선택, 최대 5개). request 파트는 Content-Type: application/json으로 전송")
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateItemResponse> createItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Parameter(description = "아이템 생성 요청 (JSON)", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CreateItemRequest.class)))
             @RequestPart("request") @Valid CreateItemRequest request,
+            @Parameter(description = "리뷰 이미지 파일 (선택, 최대 5개)")
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
         CreateItemCommand command = new CreateItemCommand(
@@ -64,12 +69,14 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateItemResponse.from(item));
     }
 
-    @Operation(summary = "아이템 수정", description = "request(JSON) + reviewImages(파일, 선택, 최대 5개)")
+    @Operation(summary = "아이템 수정", description = "multipart/form-data: request(JSON) + reviewImages(이미지 파일, 선택, 최대 5개). request 파트는 Content-Type: application/json으로 전송")
     @PatchMapping(value = "/{itemId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UpdateItemResponse> updateItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long itemId,
+            @Parameter(description = "아이템 수정 요청 (JSON)", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UpdateItemRequest.class)))
             @RequestPart("request") @Valid UpdateItemRequest request,
+            @Parameter(description = "리뷰 이미지 파일 (선택, 최대 5개)")
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
         UpdateItemCommand command = new UpdateItemCommand(
