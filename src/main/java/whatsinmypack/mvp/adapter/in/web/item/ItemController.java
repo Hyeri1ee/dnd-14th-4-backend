@@ -5,20 +5,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import whatsinmypack.mvp.adapter.in.web.item.req.CreateItemRequest;
 import whatsinmypack.mvp.adapter.in.web.item.req.UpdateItemRequest;
 import whatsinmypack.mvp.adapter.in.web.item.res.CreateItemResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.ItemSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.UpdateItemResponse;
+import whatsinmypack.mvp.adapter.out.storage.ImageStorageAdapter;
 import whatsinmypack.mvp.application.item.create.CreateItemCommand;
 import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
 import whatsinmypack.mvp.application.item.getlist.GetUserItemsUseCase;
@@ -26,6 +29,8 @@ import whatsinmypack.mvp.application.item.update.UpdateItemCommand;
 import whatsinmypack.mvp.application.item.update.UpdateItemUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
+
+import java.util.Collections;
 import java.util.List;
 
 
@@ -38,20 +43,28 @@ public class ItemController {
     private final CreateItemUseCase createItemUseCase;
     private final GetUserItemsUseCase getUserItemsUseCase;
     private final UpdateItemUseCase updateItemUseCase;
+    private final ImageStorageAdapter imageStorageAdapter;
 
-    @Operation(summary = "아이템 추가", description = "브랜드/제품명/만족도를 입력하고, 리뷰/태그/사용기간/구매처는 선택 입력")
-    @PostMapping("/new")
+    @Operation(summary = "아이템 추가", description = "request(JSON) + reviewImages(파일, 선택, 최대 5개)")
+    @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateItemResponse> createItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @Valid @RequestBody CreateItemRequest request
+            @RequestPart("request") @Valid CreateItemRequest request,
+            @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
+        //이미지 정보
+        List<String> imagePaths = (reviewImages != null && !reviewImages.isEmpty())
+                ? imageStorageAdapter.store(reviewImages)
+                : Collections.emptyList();
+
+        //그 외 정보들
         CreateItemCommand command = new CreateItemCommand(
                 userDetails.getUserId(),
                 request.brandName(),
                 request.productName(),
                 request.satisfaction(),
                 request.reviewText(),
-                List.of(), // reviewImagePaths: multipart로 받은 이미지 저장 후 경로 전달 예정
+                imagePaths,
                 request.tags(),
                 request.usePeriod(),
                 request.purchaseLocation()
@@ -60,13 +73,20 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(CreateItemResponse.from(item));
     }
 
-    @Operation(summary = "아이템 수정", description = "기존 아이템 정보를 수정")
-    @PatchMapping("/{itemId}")
+    @Operation(summary = "아이템 수정", description = "request(JSON) + reviewImages(파일, 선택, 최대 5개)")
+    @PatchMapping(value = "/{itemId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UpdateItemResponse> updateItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long itemId,
-            @Valid @RequestBody UpdateItemRequest request
+            @RequestPart("request") @Valid UpdateItemRequest request,
+            @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
+        //이미지 정보
+        List<String> imagePaths = (reviewImages != null && !reviewImages.isEmpty())
+                ? imageStorageAdapter.store(reviewImages)
+                : Collections.emptyList();
+
+        //그 외 정보들
         UpdateItemCommand command = new UpdateItemCommand(
                 itemId,
                 userDetails.getUserId(),
@@ -74,7 +94,7 @@ public class ItemController {
                 request.productName(),
                 request.satisfaction(),
                 request.reviewText(),
-                List.of(), // reviewImagePaths: multipart로 받은 이미지 저장 후 경로 전달 예정
+                imagePaths,
                 request.tags(),
                 request.usePeriod(),
                 request.purchaseLocation()
