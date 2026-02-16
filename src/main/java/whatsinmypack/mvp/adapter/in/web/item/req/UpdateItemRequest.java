@@ -29,10 +29,6 @@ public record UpdateItemRequest(
         @Size(max = 100)
         String reviewText,
 
-        @Schema(description = "리뷰 이미지 URL 또는 경로 (선택, 최대 5개)")
-        @Size(max = 5)
-        List<String> reviewImagePaths,
-
         @Schema(description = "태그 (선택, 최대 5개, 태그당 최대 10자)")
         @Size(max = 5)
         List<String> tags,
@@ -45,7 +41,6 @@ public record UpdateItemRequest(
         String purchaseLocation
 ) {
     public UpdateItemRequest {
-        reviewImagePaths = reviewImagePaths != null ? reviewImagePaths : List.of();
         tags = tags != null ? tags : List.of();
     }
 }

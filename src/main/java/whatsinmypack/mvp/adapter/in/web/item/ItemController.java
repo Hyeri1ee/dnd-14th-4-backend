@@ -51,7 +51,7 @@ public class ItemController {
                 request.productName(),
                 request.satisfaction(),
                 request.reviewText(),
-                request.reviewImagePaths(),
+                List.of(), // reviewImagePaths: multipart로 받은 이미지 저장 후 경로 전달 예정
                 request.tags(),
                 request.usePeriod(),
                 request.purchaseLocation()
@@ -74,7 +74,7 @@ public class ItemController {
                 request.productName(),
                 request.satisfaction(),
                 request.reviewText(),
-                request.reviewImagePaths(),
+                List.of(), // reviewImagePaths: multipart로 받은 이미지 저장 후 경로 전달 예정
                 request.tags(),
                 request.usePeriod(),
                 request.purchaseLocation()
