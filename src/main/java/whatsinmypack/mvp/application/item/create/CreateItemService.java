@@ -40,17 +40,19 @@ public class CreateItemService implements CreateItemUseCase {
                 .purchase(command.purchaseLocation())
                 .user(user)
                 .build();
+        validateAndAddTags(item, command.tags());
+
+        Item savedItem = itemPersistencePort.save(item);
 
         List<String> imagePaths = imageStoragePort.store(
                 command.reviewImages(),
                 command.userId(),
-                null,
+                savedItem.getId(),
                 command.productName()
         );
-        validateAndAddImages(item, imagePaths);
-        validateAndAddTags(item, command.tags());
+        validateAndAddImages(savedItem, imagePaths);
 
-        return itemPersistencePort.save(item);
+        return itemPersistencePort.save(savedItem);
     }
 
     private void validateAndAddImages(Item item, List<String> paths) {

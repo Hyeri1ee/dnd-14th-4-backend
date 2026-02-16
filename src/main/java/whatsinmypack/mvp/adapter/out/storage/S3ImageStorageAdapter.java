@@ -3,32 +3,33 @@ package whatsinmypack.mvp.adapter.out.storage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import whatsinmypack.mvp.domain.item.port.ImageStoragePort;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
 @Component
-public class ImageStorageAdapter implements ImageStoragePort {
+public class S3ImageStorageAdapter implements ImageStoragePort {
 
-    private final Path uploadPath;
+    private final S3Client s3Client;
+    private final String bucket;
+    private final String keyPrefix;
     private final String baseUrl;
 
-    public ImageStorageAdapter(
-            @Value("${app.upload.path}") String uploadPath,
-            @Value("${app.upload.base-url}") String baseUrl
+    public S3ImageStorageAdapter(
+            S3Client s3Client,
+            @Value("${app.s3.bucket}") String bucket,
+            @Value("${app.s3.key-prefix}") String keyPrefix,
+            @Value("${app.s3.base-url}") String baseUrl
     ) {
-        this.uploadPath = Paths.get(uploadPath).toAbsolutePath().normalize();
+        this.s3Client = s3Client;
+        this.bucket = bucket;
+        this.keyPrefix = keyPrefix.endsWith("/") ? keyPrefix : keyPrefix + "/";
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        try {
-            Files.createDirectories(this.uploadPath);
-        } catch (IOException e) {
-            throw new IllegalStateException("업로드 디렉토리 생성 실패: " + uploadPath, e);
-        }
     }
 
     @Override
@@ -38,28 +39,30 @@ public class ImageStorageAdapter implements ImageStoragePort {
         }
         String segmentItemId = itemId != null ? String.valueOf(itemId) : "new";
         String segmentItemName = sanitizePathSegment(itemName != null ? itemName : "item");
-        Path dir = uploadPath.resolve(String.valueOf(userId)).resolve(segmentItemId).resolve(segmentItemName);
-        try {
-            Files.createDirectories(dir);
-        } catch (IOException e) {
-            throw new IllegalStateException("업로드 디렉토리 생성 실패: " + dir, e);
-        }
         return files.stream()
                 .filter(f -> f != null && !f.isEmpty())
-                .map(f -> storeOne(f, dir, userId, segmentItemId, segmentItemName))
+                .map(f -> storeOne(f, userId, segmentItemId, segmentItemName))
                 .toList();
     }
 
-    private String storeOne(MultipartFile file, Path dir, Long userId, String segmentItemId, String segmentItemName) {
+    private String storeOne(MultipartFile file, Long userId, String segmentItemId, String segmentItemName) {
         String ext = file.getOriginalFilename() != null && file.getOriginalFilename().contains(".")
                 ? file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'))
                 : ".jpg";
         String filename = UUID.randomUUID() + ext;
-        Path target = dir.resolve(filename);
+        String key = keyPrefix + userId + "/" + segmentItemId + "/" + segmentItemName + "/" + filename;
+
+        String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType)
+                .build();
         try {
-            Files.copy(file.getInputStream(), target);
+            byte[] bytes = file.getBytes();
+            s3Client.putObject(request, RequestBody.fromBytes(bytes));
         } catch (IOException e) {
-            throw new IllegalStateException("이미지 저장 실패: " + file.getOriginalFilename(), e);
+            throw new IllegalStateException("S3 이미지 저장 실패: " + file.getOriginalFilename(), e);
         }
         return baseUrl + userId + "/" + segmentItemId + "/" + segmentItemName + "/" + filename;
     }
