@@ -41,10 +41,26 @@ public class CreateItemService implements CreateItemUseCase {
                 .user(user)
                 .build();
 
-        List<String> imagePaths = imageStoragePort.store(command.reviewImages());
+        List<String> imagePaths = imageStoragePort.store(
+                command.reviewImages(),
+                command.userId(),
+                null,
+                command.productName()
+        );
+        validateAndAddImages(item, imagePaths);
         validateAndAddTags(item, command.tags());
 
         return itemPersistencePort.save(item);
+    }
+
+    private void validateAndAddImages(Item item, List<String> paths) {
+        if (paths == null || paths.isEmpty()) return;
+        if (paths.size() > MAX_REVIEW_IMAGES) {
+            throw new IllegalArgumentException("리뷰 이미지는 최대 " + MAX_REVIEW_IMAGES + "개까지 등록할 수 있습니다.");
+        }
+        for (String path : paths) {
+            item.addImage(ItemImage.fromPath(path));
+        }
     }
 
     private void validateAndAddTags(Item item, List<String> tagValues) {

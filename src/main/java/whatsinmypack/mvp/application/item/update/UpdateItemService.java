@@ -43,7 +43,12 @@ public class UpdateItemService implements UpdateItemUseCase {
                 command.purchaseLocation()
         );
 
-        List<String> imagePaths = imageStoragePort.store(command.reviewImages());
+        List<String> imagePaths = imageStoragePort.store(
+                command.reviewImages(),
+                command.userId(),
+                command.itemId(),
+                command.productName()
+        );
         updateImages(item, imagePaths);
 
         //태그 업데이트

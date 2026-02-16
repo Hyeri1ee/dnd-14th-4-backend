@@ -32,28 +32,42 @@ public class ImageStorageAdapter implements ImageStoragePort {
     }
 
     @Override
-    public List<String> store(List<MultipartFile> files) {
+    public List<String> store(List<MultipartFile> files, Long userId, Long itemId, String itemName) {
         if (files == null || files.isEmpty()) {
             return List.of();
         }
+        String segmentItemId = itemId != null ? String.valueOf(itemId) : "new";
+        String segmentItemName = sanitizePathSegment(itemName != null ? itemName : "item");
+        Path dir = uploadPath.resolve(String.valueOf(userId)).resolve(segmentItemId).resolve(segmentItemName);
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new IllegalStateException("업로드 디렉토리 생성 실패: " + dir, e);
+        }
         return files.stream()
                 .filter(f -> f != null && !f.isEmpty())
-                .map(this::storeOne)
+                .map(f -> storeOne(f, dir, userId, segmentItemId, segmentItemName))
                 .toList();
     }
 
-    private String storeOne(MultipartFile file) {
+    private String storeOne(MultipartFile file, Path dir, Long userId, String segmentItemId, String segmentItemName) {
         String ext = file.getOriginalFilename() != null && file.getOriginalFilename().contains(".")
                 ? file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'))
-                : ".jpg";//확장자
-
+                : ".jpg";
         String filename = UUID.randomUUID() + ext;
-        Path target = uploadPath.resolve(filename);
+        Path target = dir.resolve(filename);
         try {
             Files.copy(file.getInputStream(), target);
         } catch (IOException e) {
             throw new IllegalStateException("이미지 저장 실패: " + file.getOriginalFilename(), e);
         }
-        return baseUrl + filename;
+        return baseUrl + userId + "/" + segmentItemId + "/" + segmentItemName + "/" + filename;
+    }
+
+    private static String sanitizePathSegment(String name) {
+        if (name == null || name.isBlank()) return "item";
+        return name.replaceAll("[\\\\/:*?\"<>|]", "_")
+                .replaceAll("\\s+", "_")
+                .trim();
     }
 }
