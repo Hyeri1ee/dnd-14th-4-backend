@@ -28,4 +28,10 @@ public class ItemImage extends BaseEntity {
     public void setItem(Item item) {
         this.item = item;
     }
+
+    public static ItemImage fromPath(String path) {
+        return ItemImage.builder()
+                .path(path.trim())
+                .build();
+    }
 }
