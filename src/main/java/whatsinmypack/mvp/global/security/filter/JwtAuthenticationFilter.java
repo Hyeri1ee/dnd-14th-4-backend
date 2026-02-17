@@ -77,6 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
+        log.info("필터를 거치지 않는 api 엔드포인트: {}", path);
 
         return path.equals("/api/hello") ||
                 path.equals("/favicon.ico") ||
