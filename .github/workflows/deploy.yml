@@ -259,30 +259,39 @@ jobs:
                 exit 1
               fi
               echo "대기 중... ($i/12)"
+              sleep 6
+            done
+            
+            # Docker health 상태 대기
+            echo "Docker health 상태 대기 중..."
+            
+            for i in {1..20}; do
+              HEALTH_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null)
+          
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
+                echo "✅ 컨테이너 health=healthy 확인 완료"
+                break
+              fi
+            
+              if [ "$HEALTH_STATUS" = "unhealthy" ]; then
+                echo "❌ 컨테이너 health=unhealthy 상태"
+                sudo docker logs $CONTAINER_NAME
+                exit 1
+              fi
+          
+              echo "현재 health 상태: $HEALTH_STATUS ($i/20)"
               sleep 5
             done
             
-            #HTTP 헬스체크 (/api/hello 엔드포인트)
-            echo "HTTP 헬스체크 시작..."
-            HEALTH_CHECKED=false
-            for i in {1..10}; do
-              if curl -f http://localhost:$INACTIVE_PORT/api/hello > /dev/null 2>&1; then
-                echo "$INACTIVE_ENV 환경 HTTP 헬스체크 성공 (/api/hello)"
-                HEALTH_CHECKED=true
-                break
-              fi
-              echo "헬스체크 재시도 중... ($i/10)"
-              sleep 3
-            done
+            FINAL_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME)
             
-            if [ "$HEALTH_CHECKED" = false ]; then
-              echo "$INACTIVE_ENV 환경 HTTP 헬스체크 실패. 배포 중단."
-              echo "컨테이너 로그 확인:"
-              sudo docker logs $CONTAINER_NAME 2>/dev/null || true
-              $DOCKER_COMPOSE_CMD -f docker-compose.yml stop $INACTIVE_ENV 2>/dev/null || true
+            if [ "$FINAL_STATUS" != "healthy" ]; then
+              echo "❌ health check timeout. 배포 중단."
+              sudo docker logs $CONTAINER_NAME
               exit 1
             fi
-            
+  
+  
             #nginx upstream 설정 전환
             echo "nginx upstream 설정 전환 중..."
             
