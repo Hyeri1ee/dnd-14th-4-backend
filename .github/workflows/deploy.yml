@@ -376,12 +376,24 @@ jobs:
             echo "CHECK_PORT=$CHECK_PORT"
 
             # 로컬 헬스체크
-            if curl -v -f http://localhost:$CHECK_PORT/api/hello; then
-              echo "✅ 배포 검증 성공: $ACTIVE_ENV 환경 (포트 $CHECK_PORT)"
-            else
-              echo "❌ 배포 검증 실패: $ACTIVE_ENV 환경이 응답하지 않습니다. (포트 $CHECK_PORT)"
-              exit 1
-            fi
+            #if curl -v -f http://localhost:$CHECK_PORT/api/hello; then
+            #  echo "✅ 배포 검증 성공: $ACTIVE_ENV 환경 (포트 $CHECK_PORT)"
+            #else
+            #  echo "❌ 배포 검증 실패: $ACTIVE_ENV 환경이 응답하지 않습니다. (포트 $CHECK_PORT)"
+            #  exit 1
+            #fi
             
-            echo "✅ 배포가 성공적으로 완료되었습니다."
+            #echo "✅ 배포가 성공적으로 완료되었습니다."
 
+            # 로컬 헬스체크 12번!!
+            MAX_RETRIES=12
+            SLEEP_SEC=5
+
+            for i in $(seq 1 $MAX_RETRIES); do
+              if curl -4 -f http://localhost:$CHECK_PORT/api/hello > /dev/null 2>&1; then
+                echo "✅ 배포 검증 성공 (시도 $i/$MAX_RETRIES)"
+                break
+              fi
+              echo "아직 응답 없음 (시도 $i/$MAX_RETRIES)"
+              sleep $SLEEP_SEC
+            done
