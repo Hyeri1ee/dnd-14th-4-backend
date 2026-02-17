@@ -372,11 +372,14 @@ jobs:
               CHECK_PORT="8081"
             fi
             
+            #check_port 로그
+            echo "CHECK_PORT=$CHECK_PORT"
+
             # 로컬 헬스체크
             if curl -f http://localhost:$CHECK_PORT/api/hello > /dev/null 2>&1; then
               echo "✅ 배포 검증 성공: $ACTIVE_ENV 환경 (포트 $CHECK_PORT)"
             else
-              echo "❌ 배포 검증 실패: $ACTIVE_ENV 환경이 응답하지 않습니다."
+              echo "❌ 배포 검증 실패: $ACTIVE_ENV 환경이 응답하지 않습니다. (포트 $CHECK_PORT)"
               exit 1
             fi
             
