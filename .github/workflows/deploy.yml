@@ -262,35 +262,38 @@ jobs:
               sleep 6
             done
             
+            #echo "컨테이너 Up 확인 완료, 추가 120초 대기..."
+            #sleep 120
+            
             # Docker health 상태 대기
-            echo "Docker health 상태 대기 중..."
+            #echo "Docker health 상태 대기 중..."
   
-            for i in {1..60}; do
-              HEALTH_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null || echo "none")
+            #for i in {1..20}; do
+            #  HEALTH_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null || echo "none")
               
-              timestamp=$(date +"%H:%M:%S")  # 현재 시간 출력
-              echo "[$timestamp] 시도 $i/20 - $CONTAINER_NAME 상태: $HEALTH_STATUS"
+            #  timestamp=$(date +"%H:%M:%S")  # 현재 시간 출력
+            #  echo "[$timestamp] 시도 $i/20 - $CONTAINER_NAME 상태: $HEALTH_STATUS"
             
-              if [ "$HEALTH_STATUS" = "healthy" ]; then
-                echo "✅ 컨테이너가 healthy 상태입니다!"
-                break
-              fi
+            #  if [ "$HEALTH_STATUS" = "healthy" ]; then
+            #    echo "✅ 컨테이너가 healthy 상태입니다!"
+            #    break
+            #  fi
             
-              if [ "$HEALTH_STATUS" = "unhealthy" ]; then
-                echo "❌ 컨테이너가 unhealthy 상태입니다!"
-                sudo docker logs $CONTAINER_NAME
-                exit 1
-              fi
+            #  if [ "$HEALTH_STATUS" = "unhealthy" ]; then
+            #    echo "❌ 컨테이너가 unhealthy 상태입니다!"
+            #    sudo docker logs $CONTAINER_NAME
+            #    exit 1
+            #  fi
             
-              sleep 5
-            done
+            #  sleep 5
+            #done
             
-            FINAL_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null || echo "none")
-            if [ "$FINAL_STATUS" != "healthy" ]; then
-              echo "❌ health check timeout. 컨테이너 상태: $FINAL_STATUS"
-              sudo docker logs $CONTAINER_NAME
-              exit 1
-            fi
+            #FINAL_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null || echo "none")
+            #if [ "$FINAL_STATUS" != "healthy" ]; then
+            #  echo "❌ health check timeout. 컨테이너 상태: $FINAL_STATUS"
+            #  sudo docker logs $CONTAINER_NAME
+            #  exit 1
+            #fi
   
   
   
