@@ -16,7 +16,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 15
-      start_period: 60s
+      start_period: 150s
     networks:
       - mvp-network
 
@@ -37,7 +37,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 15
-      start_period: 60s
+      start_period: 150s
     networks:
       - mvp-network
 
