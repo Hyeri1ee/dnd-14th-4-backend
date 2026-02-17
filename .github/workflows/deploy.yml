@@ -264,32 +264,34 @@ jobs:
             
             # Docker health 상태 대기
             echo "Docker health 상태 대기 중..."
+  
+            for i in {1..60}; do
+              HEALTH_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null || echo "none")
+              
+              timestamp=$(date +"%H:%M:%S")  # 현재 시간 출력
+              echo "[$timestamp] 시도 $i/20 - $CONTAINER_NAME 상태: $HEALTH_STATUS"
             
-            for i in {1..20}; do
-              HEALTH_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null)
-          
-              if [ "$HEALTH_STATUS" = "starting" ]; then
-                echo "✅ 컨테이너 health=healthy 확인 완료"
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
+                echo "✅ 컨테이너가 healthy 상태입니다!"
                 break
               fi
             
               if [ "$HEALTH_STATUS" = "unhealthy" ]; then
-                echo "❌ 컨테이너 health=unhealthy 상태"
+                echo "❌ 컨테이너가 unhealthy 상태입니다!"
                 sudo docker logs $CONTAINER_NAME
                 exit 1
               fi
-          
-              echo "현재 health 상태: $HEALTH_STATUS ($i/20)"
+            
               sleep 5
             done
             
-            FINAL_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME)
-            
+            FINAL_STATUS=$(sudo docker inspect --format='{{.State.Health.Status}}' $CONTAINER_NAME 2>/dev/null || echo "none")
             if [ "$FINAL_STATUS" != "healthy" ]; then
-              echo "❌ health check timeout. 배포 중단."
+              echo "❌ health check timeout. 컨테이너 상태: $FINAL_STATUS"
               sudo docker logs $CONTAINER_NAME
               exit 1
             fi
+  
   
   
             #nginx upstream 설정 전환
@@ -368,12 +370,12 @@ jobs:
             fi
             
             # 로컬 헬스체크
-            #if curl -f http://localhost:$CHECK_PORT/api/hello > /dev/null 2>&1; then
-            #  echo "✅ 배포 검증 성공: $ACTIVE_ENV 환경 (포트 $CHECK_PORT)"
-            #else
-            #  echo "❌ 배포 검증 실패: $ACTIVE_ENV 환경이 응답하지 않습니다."
-            #  exit 1
-            #fi
+            if curl -f http://localhost:$CHECK_PORT/api/hello > /dev/null 2>&1; then
+              echo "✅ 배포 검증 성공: $ACTIVE_ENV 환경 (포트 $CHECK_PORT)"
+            else
+              echo "❌ 배포 검증 실패: $ACTIVE_ENV 환경이 응답하지 않습니다."
+              exit 1
+            fi
             
             echo "✅ 배포가 성공적으로 완료되었습니다."
 
