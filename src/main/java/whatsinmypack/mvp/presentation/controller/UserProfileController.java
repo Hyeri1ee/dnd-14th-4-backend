@@ -47,7 +47,8 @@ public class UserProfileController {
     private final UpdateProfileUseCase updateProfileUseCase;
     private final UpdateUserContextCategoriesUseCase updateUserContextCategoriesUseCase;
 
-    @Operation(summary = "마이페이지 > 프로필 조회", description = "로그인한 유저의 프로필 사진 URL + 관심 카테고리 이름 목록 (user_context_category, context_category join)")
+    @Operation(summary = "마이페이지 > 프로필 조회", description = "로그인한 유저의 프로필 사진 URL + 관심 카테고리 이름 목록 (user_context_category, context_category join). "
+            + "프로필 이미지가 없을 때(DB profile_image null/빈값)에는 URL 대신 userId 기반 해시로 결정된 기본 색상 문자열을 반환한다: yellow, red, blue, green, purple 중 하나.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = MyPageProfileResponse.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
