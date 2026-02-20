@@ -42,7 +42,7 @@ public class UserProfileController {
     private final GetMyPageProfileUseCase getMyPageProfileUseCase;
     private final UpdateProfileUseCase updateProfileUseCase;
 
-    @Operation(summary = "마이페이지 프로필 조회", description = "로그인한 유저의 프로필 사진 URL + 관심 카테고리 이름 목록 (user_context_category, context_category join)")
+    @Operation(summary = "마이페이지 > 프로필 조회", description = "로그인한 유저의 프로필 사진 URL + 관심 카테고리 이름 목록 (user_context_category, context_category join)")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = MyPageProfileResponse.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
@@ -53,7 +53,7 @@ public class UserProfileController {
         return ResponseEntity.ok(MyPageProfileResponse.from(profile));
     }
 
-    @Operation(summary = "프로필 설정 수정", description = "닉네임, 연령대, 성별, 프로필 사진 수정. multipart: request(JSON) + profileImage(선택). 프로필 사진은 S3 upload/profile/{userId}/{timestamp}.ext 에 저장, 조회 시 가장 최근 URL 사용")
+    @Operation(summary = "마이페이지 > 프로필 설정 수정", description = "닉네임, 연령대, 성별, 프로필 사진 수정. multipart: request(JSON) + profileImage(선택). 프로필 사진은 S3 upload/profile/{userId}/{timestamp}.ext 에 저장, 조회 시 가장 최근 URL 사용")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = UpdateProfileResponse.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
