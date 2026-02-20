@@ -7,9 +7,9 @@ import java.util.List;
 
 @Schema(description = "마이페이지 프로필 응답 (프로필 사진 URL + 관심 카테고리 이름 목록)")
 public record MyPageProfileResponse(
-        @Schema(description = "프로필 사진 URL")
+        @Schema(description = "프로필 사진 URL", example = "https://whatsinmypack.s3.ap-northeast-2.amazonaws.com/profile/default.png")
         String profileImageUrl,
-        @Schema(description = "관심 카테고리 이름 목록 (user_context_category + context_category join)")
+        @Schema(description = "관심 카테고리 이름 목록 (user_context_category, context_category join)", example = "[\"공부/시험\", \"면접/취준\", \"여행/캠핑\"]")
         List<String> contextCategoryNames
 ) {
     public static MyPageProfileResponse from(MyPageProfile profile) {
