@@ -49,4 +49,11 @@ public class User extends BaseEntity {
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
+
+    public void updateProfile(String nickname, Gender gender, AgeGroup ageGroup, String profileImage) {
+        this.nickname = nickname;
+        this.gender = gender;
+        this.ageGroup = ageGroup;
+        this.profileImage = profileImage;
+    }
 }
