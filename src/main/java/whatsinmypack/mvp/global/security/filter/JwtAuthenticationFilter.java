@@ -5,8 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -43,17 +41,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new AuthenticationCredentialsNotFoundException("Access Token이 존재하지 않습니다.");
             }
 
-            // 토큰 디코딩 및 검증
-//            String decodedToken = URLDecoder.decode(tokenValue, StandardCharsets.UTF_8);
-//            jwtTokenProvider.validateToken(decodedToken);
-            jwtTokenProvider.validateToken(tokenValue);
+            String email;
+            String rawToken = tokenValue.startsWith("Bearer ") ? tokenValue.substring(7) : tokenValue;
 
-            /**
-             * 현재로써는 검증이 끝나면 바로 다시 응답 헤더에 엑세스 토큰 반납 처리
-             * 리프레시 토큰 기반 재발급 등등은 나중에 보강합시다잉
-             */
-            // 디코딩 토큰으로부터 사용자 식별값(이메일 추출)
-            String email = jwtTokenProvider.getEmailFromToken(tokenValue);
+            // 테스트용 토큰: Bearer user_1 / Bearer user_2 → 해당 테스트 유저 이메일로 인증 (JWT 검증 생략)
+            if ("user_1".equals(rawToken)) {
+                email = "user_1@test.com";
+            } else if ("user_2".equals(rawToken)) {
+                email = "user_2@test.com";
+            } else {
+                jwtTokenProvider.validateToken(tokenValue);
+                email = jwtTokenProvider.getEmailFromToken(tokenValue);
+            }
 
             // 응답 헤더에 엑세스 토큰 삽입
             response.addHeader(AUTHORIZATION_HEADER, tokenValue);
@@ -84,7 +83,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/api-docs") ||
                 path.startsWith("/v3/api-docs") ||
-                path.startsWith("/oauth2/");
+                path.startsWith("/oauth2/") ||
+                path.startsWith("/api/v1/test/");
     }
 
     private Authentication createAuthentication(String username) {
