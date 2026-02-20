@@ -10,4 +10,6 @@ public interface UserContextCategoryJpaRepository extends JpaRepository<UserCont
 
     @Query("select ucc from UserContextCategory ucc join fetch ucc.contextCategory where ucc.user.id = :userId")
     List<UserContextCategory> findByUserId(Long userId);
+
+    void deleteByUser_Id(Long userId);
 }

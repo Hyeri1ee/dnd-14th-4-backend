@@ -19,14 +19,18 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 import whatsinmypack.mvp.application.UserProfileService;
 import whatsinmypack.mvp.application.mypage.GetMyPageProfileUseCase;
 import whatsinmypack.mvp.application.mypage.MyPageProfile;
+import whatsinmypack.mvp.application.contextcategories.UpdateUserContextCategoriesUseCase;
 import whatsinmypack.mvp.application.profile.UpdateProfileCommand;
 import whatsinmypack.mvp.application.profile.UpdateProfileUseCase;
 import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 import whatsinmypack.mvp.presentation.request.NicknameRequest;
+import whatsinmypack.mvp.presentation.request.UpdateContextCategoriesRequest;
 import whatsinmypack.mvp.presentation.request.UpdateProfileRequest;
 import whatsinmypack.mvp.presentation.response.ApiResponse;
 import whatsinmypack.mvp.presentation.response.MyPageProfileResponse;
@@ -41,6 +45,7 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final GetMyPageProfileUseCase getMyPageProfileUseCase;
     private final UpdateProfileUseCase updateProfileUseCase;
+    private final UpdateUserContextCategoriesUseCase updateUserContextCategoriesUseCase;
 
     @Operation(summary = "마이페이지 > 프로필 조회", description = "로그인한 유저의 프로필 사진 URL + 관심 카테고리 이름 목록 (user_context_category, context_category join)")
     @ApiResponses({
@@ -75,6 +80,24 @@ public class UserProfileController {
                 profileImage
         ));
         return ResponseEntity.ok(UpdateProfileResponse.from(user));
+    }
+
+    @Operation(summary = "마이페이지 > 개인화 정보 설정 (관심 상황 수정)", description = "유저의 관심 상황 교체. 기존 user_context_category 삭제 후 새로 저장. 최대 3개. [1: 공부/시험 2: 면접/취준 3: 업무/출근 4: 약속/데이트 5: 운동/선택 6: 여행/경험 7: 취미/작업 8: 육아/반려동물]")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 (존재하지 않는 카테고리 ID, 3개 초과 등)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @PatchMapping("/profile/preference")
+    public ResponseEntity<Void> updateContextCategories(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody UpdateContextCategoriesRequest request
+    ) {
+        updateUserContextCategoriesUseCase.update(
+                userDetails.getUserId(),
+                request.contextCategoryIds() != null ? request.contextCategoryIds() : List.of()
+        );
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "회원탈퇴", description = "서비스 회원탈퇴 및 카카오 연동해제 동시 성공")
