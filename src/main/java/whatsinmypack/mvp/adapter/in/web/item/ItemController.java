@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +31,8 @@ import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
 import whatsinmypack.mvp.application.item.getlist.GetUserItemsUseCase;
 import whatsinmypack.mvp.application.item.update.UpdateItemCommand;
 import whatsinmypack.mvp.application.item.update.UpdateItemUseCase;
+import whatsinmypack.mvp.application.wishlist.AddItemWishListUseCase;
+import whatsinmypack.mvp.application.wishlist.RemoveItemWishListUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
@@ -44,6 +48,8 @@ public class ItemController {
     private final CreateItemUseCase createItemUseCase;
     private final GetUserItemsUseCase getUserItemsUseCase;
     private final UpdateItemUseCase updateItemUseCase;
+    private final AddItemWishListUseCase addItemWishListUseCase;
+    private final RemoveItemWishListUseCase removeItemWishListUseCase;
 
     @Operation(summary = "아이템 추가", description = "multipart/form-data: request(JSON) + reviewImages(이미지 파일, 선택, 최대 5개). request 파트는 Content-Type: application/json으로 전송")
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -108,5 +114,34 @@ public class ItemController {
                 .map(ItemSummaryResponse::from)
                 .toList();
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "아이템 위시리스트 추가", description = "해당 아이템을 위시리스트에 추가. item_wishlists에 (user_id, item_id) 행이 없으면 생성 후 is_wishlist=1, 있으면 is_wishlist=1로 갱신")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "아이템 없음")
+    })
+    @PostMapping("/{itemId}/wishlist")
+    public ResponseEntity<Void> addWishlist(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long itemId
+    ) {
+        addItemWishListUseCase.add(userDetails.getUserId(), itemId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "아이템 위시리스트 삭제", description = "해당 아이템을 위시리스트에서 제거. item_wishlists의 is_wishlist=0으로 갱신")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @DeleteMapping("/{itemId}/wishlist")
+    public ResponseEntity<Void> removeWishlist(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long itemId
+    ) {
+        removeItemWishListUseCase.remove(userDetails.getUserId(), itemId);
+        return ResponseEntity.noContent().build();
     }
 }
