@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.application.testdata.SeedDataUseCase;
 
-@Tag(name = "TestData", description = "테스트용 시드 데이터 API")
+@Tag(
+        name = "TestData",
+        description = "테스트용 시드 데이터 API. "
+                + "**참고 (시드 생성):** 시드 삭제 API를 먼저 호출하지 않아도, 이미 시드가 있어도 생성 API만 다시 호출하면 기존 테스트 데이터가 제거된 뒤 새 데이터로 덮어쓰기 됩니다."
+)
 @RestController
 @RequestMapping("/api/v1/test")
 @RequiredArgsConstructor
@@ -32,7 +36,12 @@ public class TestDataController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "시드 데이터 삭제", description = "테스트용 user 2명(user_1@test.com, user_2@test.com)과 해당 유저의 아이템 전부 삭제.")
+    @Operation(
+            summary = "시드 데이터 삭제",
+            description = "테스트용 user 2명(user_1@test.com, user_2@test.com)과 해당 유저의 아이템 전부 삭제. "
+                    + "**동작:** 시드 유저가 있으면 → 해당 유저의 아이템 삭제 후 유저 삭제. "
+                    + "시드 유저가 없으면 → Optional.empty()라 ifPresent가 실행되지 않아 아무 작업도 하지 않고 204 반환(멱등)."
+    )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")

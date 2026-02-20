@@ -1,5 +1,6 @@
 package whatsinmypack.mvp.adapter.out.persistence.testdata;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class SeedDataAdapter implements SeedDataPort {
 
     private final UserRepository userRepository;
     private final ItemJpaRepository itemJpaRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -34,6 +36,8 @@ public class SeedDataAdapter implements SeedDataPort {
     @Transactional
     public void seed() {
         removeExistingTestData();
+        entityManager.flush();
+        entityManager.clear();
         User user1 = createUser(TEST_USER_1_EMAIL, "테스트유저1", 1001L);
         User user2 = createUser(TEST_USER_2_EMAIL, "테스트유저2", 1002L);
         user1 = userRepository.save(user1);
