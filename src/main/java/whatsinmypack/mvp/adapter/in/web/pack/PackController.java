@@ -15,17 +15,22 @@ import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.adapter.in.web.pack.req.CreatePackRequest;
+import whatsinmypack.mvp.adapter.in.web.pack.req.UpdatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackDetailResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
 import whatsinmypack.mvp.application.pack.getlist.GetUserPacksUseCase;
 import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
+import whatsinmypack.mvp.application.pack.update.UpdatePackUseCase;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
@@ -38,6 +43,7 @@ public class PackController {
     private final CreatePackUseCase createPackUseCase;
     private final SearchPacksUseCase searchPacksUseCase;
     private final GetUserPacksUseCase getUserPacksUseCase;
+    private final UpdatePackUseCase updatePackUseCase;
 
     @Operation(
             summary = "팩 생성",
@@ -153,5 +159,15 @@ public class PackController {
         Slice<Pack> slice = searchPacksUseCase.search(q, contexts, pageable);
 
         return SliceResponse.from(slice.map(PackDetailResponse::from));
+    }
+
+    @PatchMapping("/{packId}")
+    public PackDetailResponse updatePack(
+            @PathVariable Long packId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody UpdatePackRequest request
+    ) {
+        Pack pack = updatePackUseCase.update(packId, userDetails.getUser(), request);
+        return PackDetailResponse.from(pack);
     }
 }

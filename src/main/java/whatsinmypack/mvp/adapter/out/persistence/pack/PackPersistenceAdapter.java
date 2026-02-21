@@ -60,4 +60,10 @@ public class PackPersistenceAdapter implements PackPersistencePort {
     public List<Pack> findUserPacks(User user) {
         return packJpaRepository.findByUser(user);
     }
+
+    @Override
+    public Pack findByIdWithItems(Long packId) {
+        return packJpaRepository.findByIdWithItems(packId)
+                .orElseThrow(() -> new IllegalArgumentException("팩을 찾을 수 없습니다."));
+    }
 }

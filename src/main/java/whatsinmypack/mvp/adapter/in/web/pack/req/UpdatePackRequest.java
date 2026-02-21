@@ -1,6 +1,10 @@
 package whatsinmypack.mvp.adapter.in.web.pack.req;
 
-public record UpdatePackRequest(
+import java.util.List;
 
+public record UpdatePackRequest(
+        String introduction,
+        List<Long> addItems,
+        List<Long> removeItems
 ) {
 }

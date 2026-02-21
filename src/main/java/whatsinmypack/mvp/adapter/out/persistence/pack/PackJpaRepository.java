@@ -1,6 +1,7 @@
 package whatsinmypack.mvp.adapter.out.persistence.pack;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,4 +61,13 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
         where p.id in :ids
     """)
     List<Pack> findWithItemsByIds(@Param("ids") List<Long> ids);
+
+    @Query("""
+        select p 
+        from Pack p
+        left join fetch p.packItems pi
+        left join fetch pi.item
+        where p.id = :packId
+    """)
+    Optional<Pack> findByIdWithItems(@Param("packId") Long packId);
 }
