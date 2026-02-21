@@ -45,11 +45,19 @@ public class PackController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "인증 필요"
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "컨텍스트 카테고리 또는 아이템을 찾을 수 없음"
+                    description = "컨텍스트 카테고리 또는 아이템을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class)
+                    )
             )
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
