@@ -87,4 +87,11 @@ public class User extends BaseEntity {
         items.remove(item);
         item.setUser(null);
     }
+
+    public void updateProfile(String nickname, Gender gender, AgeGroup ageGroup, String profileImage) {
+        this.nickname = nickname;
+        this.gender = gender;
+        this.ageGroup = ageGroup;
+        this.profileImage = profileImage;
+    }
 }
