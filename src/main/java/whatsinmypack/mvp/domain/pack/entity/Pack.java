@@ -1,5 +1,6 @@
 package whatsinmypack.mvp.domain.pack.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -44,7 +45,11 @@ public class Pack extends BaseEntity {
     @JoinColumn(name = "context_category_id", nullable = false)
     private ContextCategory contextCategory; // 순간
 
-    @OneToMany(mappedBy = "pack")
+    @OneToMany(
+            mappedBy = "pack",
+            cascade = CascadeType.ALL, // 팩 아이템 저장 전파를 위한 케스케이드 개방
+            orphanRemoval = true
+    )
     @Builder.Default
     private List<PackItem> packItems = new ArrayList<>();
 }
