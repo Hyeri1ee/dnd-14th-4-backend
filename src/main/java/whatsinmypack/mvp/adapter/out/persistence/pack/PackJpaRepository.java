@@ -22,7 +22,7 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
         from Pack p
         join p.packItems pi
         join pi.item i
-        left join PackWishlist w on w.pack = p
+        left join PackWishList w on w.pack = p
         where
             (
                p.title like %:q%
