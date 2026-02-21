@@ -28,4 +28,9 @@ public class ItemPersistenceAdapter implements ItemPersistencePort {
     public Optional<Item> findById(Long id) {
         return itemJpaRepository.findById(id);
     }
+
+    @Override
+    public List<Item> findAllByIds(List<Long> ids) {
+        return itemJpaRepository.findAllById(ids);
+    }
 }
