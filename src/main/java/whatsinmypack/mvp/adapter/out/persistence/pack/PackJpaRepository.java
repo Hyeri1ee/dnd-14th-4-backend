@@ -7,10 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
+import whatsinmypack.mvp.domain.user.entity.User;
 
 public interface PackJpaRepository extends JpaRepository<Pack, Long> {
     // TODO: N+1 이슈 고려
     // TODO: 검색 결과 및 조회 join 네이티브 쿼리
+
+    List<Pack> findByUser(User user);
 
     /**
      * step 1 : wishlist 카운팅 기반 정렬(무한스크롤 페이징 정렬)

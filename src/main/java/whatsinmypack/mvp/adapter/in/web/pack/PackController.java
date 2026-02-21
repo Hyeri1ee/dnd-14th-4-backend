@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.adapter.in.web.pack.req.CreatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackDetailResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
+import whatsinmypack.mvp.application.pack.getlist.GetUserPacksUseCase;
 import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
@@ -35,6 +37,7 @@ public class PackController {
 
     private final CreatePackUseCase createPackUseCase;
     private final SearchPacksUseCase searchPacksUseCase;
+    private final GetUserPacksUseCase getUserPacksUseCase;
 
     @Operation(
             summary = "팩 생성",
@@ -83,6 +86,18 @@ public class PackController {
     ) {
         return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser(), request));
     }
+
+    @Operation(summary = "내 팩 전체 조회", description = "로그인한 유저의 작성 팩 목록을 최신순으로 조회")
+    @GetMapping
+    public List<PackSummaryResponse> getMyPackList(
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return getUserPacksUseCase.findUserPacks(userDetails.getUser())
+                .stream()
+                .map(e -> PackSummaryResponse.from(e, userDetails.getUser().getNickname()))
+                .toList();
+    }
+
 
     @Operation(
             summary = "팩 검색",

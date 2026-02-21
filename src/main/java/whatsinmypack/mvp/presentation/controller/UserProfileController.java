@@ -117,4 +117,6 @@ public class UserProfileController {
         userProfileService.verifyAndUpdateNickname(request.getNickname(), userDetails.getUser());
         return new ApiResponse("닉네임이 생성됐습니다");
     }
+
+    //TODO: 사용자 관심사 컨텍스트카테고리 추가
 }

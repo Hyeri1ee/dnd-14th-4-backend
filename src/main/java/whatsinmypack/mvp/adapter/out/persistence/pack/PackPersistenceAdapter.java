@@ -11,6 +11,7 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Component;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.domain.pack.port.PackPersistencePort;
+import whatsinmypack.mvp.domain.user.entity.User;
 
 @Component
 @RequiredArgsConstructor
@@ -55,4 +56,8 @@ public class PackPersistenceAdapter implements PackPersistencePort {
         return new SliceImpl<>(ordered, pageable, idSlice.hasNext());
     }
 
+    @Override
+    public List<Pack> findUserPacks(User user) {
+        return packJpaRepository.findByUser(user);
+    }
 }
