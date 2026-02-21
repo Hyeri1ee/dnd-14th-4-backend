@@ -24,15 +24,25 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
         join pi.item i
         left join PackWishlist w on w.pack = p
         where
-            p.title like %:q%
-            or p.introduction like %:q%
-            or i.title like %:q%
-            or i.brand like %:q%
-            or i.purchase like %:q%
+            (
+               p.title like %:q%
+               or p.introduction like %:q%
+               or i.title like %:q%
+               or i.brand like %:q%
+               or i.purchase like %:q%
+            )
+            and (
+               :cns is null
+               or p.contextCategory.name in :cns
+            )
         group by p.id
         order by count(w.id) desc
     """)
-    Slice<Long> searchPackIdsOrderByWishlist(@Param("q") String q, Pageable pageable);
+    Slice<Long> searchPackIdsOrderByWishlist(
+            @Param("q") String q,
+            @Param("cns") List<String> cns,
+            Pageable pageable
+    );
 
     /**
      * step 2 : pack 엔티티 + 연관관계 로딩
