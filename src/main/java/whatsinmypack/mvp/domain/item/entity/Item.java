@@ -5,8 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
 import whatsinmypack.mvp.domain.item.entity.value.ItemTag;
+import whatsinmypack.mvp.domain.pack.entity.Pack;
+import whatsinmypack.mvp.domain.relation.entity.PackItem;
 import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.global.entity.BaseEntity;
 
@@ -16,6 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "items")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,6 +50,9 @@ public class Item extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;//user_id FK
 
+    @OneToMany(mappedBy = "item")
+    @Builder.Default
+    private List<PackItem> packItems = new ArrayList<>();
 
     //ItemImage DB에서 자동 삭제
     @OneToMany(mappedBy = "item",

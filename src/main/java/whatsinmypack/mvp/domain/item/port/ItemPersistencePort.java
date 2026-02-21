@@ -12,4 +12,6 @@ public interface ItemPersistencePort {
     List<Item> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     Optional<Item> findById(Long id);
+
+    List<Item> findAllByIds(List<Long> ids); // 팩 생성용 item 리스트 조회
 }
