@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,12 @@ import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
+
+    @Value("${client.url}")
+    private String clientUrl;
+
+    @Value("${client.deployUrl}")
+    private String clientDeployUrl;
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -38,8 +45,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtTokenProvider.createToken(userDetails.getUser());
         response.addHeader(AUTHORIZATION_HEADER, accessToken);
 
+        // 엑세스 토큰 URL 삽입 및 리다이렉션
+        response.sendRedirect(clientUrl + "/login/success?access_token=" + accessToken);
+
         // sendResponseMsg 메소드 활용해서 로그인 성공 응답 보내기
-        sendResponseMsg(response, HttpServletResponse.SC_OK, new ApiResponse("로그인에 성공했습니다."));
+//        sendResponseMsg(response, HttpServletResponse.SC_OK, new ApiResponse("로그인에 성공했습니다."));
     }
 
     private void sendResponseMsg(HttpServletResponse response, int statusCode, Object responseBody) throws IOException {
