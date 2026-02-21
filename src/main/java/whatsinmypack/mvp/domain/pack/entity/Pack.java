@@ -7,7 +7,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import whatsinmypack.mvp.domain.contextCategory.entity.ContextCategory;
-import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.relation.entity.PackItem;
 import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.global.entity.BaseEntity;
@@ -41,7 +39,7 @@ public class Pack extends BaseEntity {
     @JoinColumn(name = "user_id") // nullable : true -> 사용자 탈퇴해도 팩은 남겨두도록
     private User user; // 작성자
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "context_category_id", nullable = false)
     private ContextCategory contextCategory; // 순간
 
