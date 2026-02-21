@@ -7,15 +7,24 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.adapter.in.web.pack.req.CreatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackDetailResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
+import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
+import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
 @Tag(name = "Pack", description = "팩 관련 컨트롤러")
@@ -25,13 +34,14 @@ import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 public class PackController {
 
     private final CreatePackUseCase createPackUseCase;
+    private final SearchPacksUseCase searchPacksUseCase;
 
     @Operation(
             summary = "팩 생성",
             description = """
-                    로그인한 유저가 기존에 등록한 아이템들을 선택하여 새로운 팩을 생성합니다.
-                    - 아이템은 이미 존재해야 합니다(향후 예외처리 추가 예정).
-                    - 컨텍스트 카테고리는 이름(name) 기준으로 조회됩니다.
+                    로그인한 유저가 기존에 등록한 아이템들을 선택하여 새로운 팩을 생성
+                    - 아이템은 이미 존재(향후 예외처리 추가 예정)
+                    - 컨텍스트 카테고리는 이름(name) 기준으로 조회
                     """
     )
     @ApiResponses({
@@ -72,5 +82,61 @@ public class PackController {
             CreatePackRequest request
     ) {
         return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser(), request));
+    }
+
+    @Operation(
+            summary = "팩 검색",
+            description = """
+                키워드를 기반으로 팩을 검색
+                
+                검색 대상
+                - 팩 제목
+                - 팩 설명
+                - 아이템 제목
+                - 아이템 브랜드
+                - 아이템 구매처
+                
+                컨텍스트 카테고리
+                - contexts 파라미터가 없으면 전체 팩 대상 검색
+                - 여러 개 전달 시 OR 조건으로 검색
+                
+                페이징
+                - 무한 스크롤 방식
+                - wishlist 개수 기준 내림차순 정렬
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "검색 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    implementation = SliceResponse.class
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 요청 파라미터",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class
+                            )
+                    )
+            )
+    })
+    @GetMapping("/search")
+    public SliceResponse<PackDetailResponse> searchPacks(
+            @RequestParam String q,
+            @RequestParam(required = false) List<String> contexts,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Slice<Pack> slice = searchPacksUseCase.search(q, contexts, pageable);
+
+        return SliceResponse.from(slice.map(PackDetailResponse::from));
     }
 }
