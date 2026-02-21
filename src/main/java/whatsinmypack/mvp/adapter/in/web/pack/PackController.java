@@ -161,6 +161,54 @@ public class PackController {
         return SliceResponse.from(slice.map(PackDetailResponse::from));
     }
 
+    @Operation(
+            summary = "팩 업데이트",
+            description = """
+                로그인한 유저가 자신의 팩을 수정
+                
+                수정 가능 항목:
+                - 팩 소개(introduction)
+                - 아이템 추가(addItems)
+                - 아이템 삭제(removeItems)
+                
+                요청 시 addItems와 removeItems는 동시에 전달 가능하며,
+                존재하지 않는 아이템 ID는 무시
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "팩 업데이트 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PackDetailResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "본인 팩이 아님",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "팩 또는 아이템을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class)
+                    )
+            )
+    })
     @PatchMapping("/{packId}")
     public PackDetailResponse updatePack(
             @PathVariable Long packId,
