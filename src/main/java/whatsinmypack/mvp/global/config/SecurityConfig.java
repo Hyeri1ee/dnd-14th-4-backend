@@ -43,6 +43,9 @@ public class SecurityConfig {
     @Value("${client.previewOriginPattern:https://*.vercel.app}")
     private String clientPreviewOriginPattern;
 
+    @Value("${client.apiOrigin:https://whatsinmypack.duckdns.org}")
+    private String clientApiOrigin;
+
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
@@ -110,7 +113,8 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(clientUrl, clientDeployUrl, clientPreviewOriginPattern));
+        configuration.setAllowedOriginPatterns(
+                List.of(clientUrl, clientDeployUrl, clientPreviewOriginPattern, clientApiOrigin));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization")); // 프론트엔드 응답 헤더 조회 개방
