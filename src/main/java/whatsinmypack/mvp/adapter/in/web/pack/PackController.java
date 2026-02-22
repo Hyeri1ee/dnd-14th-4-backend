@@ -28,6 +28,7 @@ import whatsinmypack.mvp.adapter.in.web.pack.req.UpdatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackDetailResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackRecommendationResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.SlicePackResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
 import whatsinmypack.mvp.application.pack.getlist.GetPacksUseCase;
@@ -151,7 +152,7 @@ public class PackController {
             )
     })
     @GetMapping("/search")
-    public SliceResponse<PackDetailResponse> searchPacks(
+    public SlicePackResponse searchPacks(
             @RequestParam String q,
             @RequestParam(required = false) List<String> contexts,
             @RequestParam(defaultValue = "0") int page,
@@ -160,7 +161,7 @@ public class PackController {
         Pageable pageable = PageRequest.of(page, size);
         Slice<Pack> slice = searchPacksUseCase.search(q, contexts, pageable);
 
-        return SliceResponse.from(slice.map(PackDetailResponse::from));
+        return SlicePackResponse.from(SliceResponse.from(slice.map(PackDetailResponse::from)));
     }
 
     @Operation(
