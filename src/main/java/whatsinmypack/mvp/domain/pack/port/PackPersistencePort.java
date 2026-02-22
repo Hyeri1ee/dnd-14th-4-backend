@@ -19,4 +19,6 @@ public interface PackPersistencePort {
     List<Pack> findUserPacks(User user);
 
     Pack findByIdWithItems(Long packId);
+
+    List<Pack> recommendPacks(Long contextId);
 }
