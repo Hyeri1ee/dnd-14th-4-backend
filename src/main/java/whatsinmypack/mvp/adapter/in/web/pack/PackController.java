@@ -221,10 +221,81 @@ public class PackController {
         return PackDetailResponse.from(pack);
     }
 
+    @Operation(
+            summary = "팩 추천 조회",
+            description = """
+            로그인한 유저의 관심 컨텍스트 카테고리를 기준으로 팩을 추천
+            
+            추천 로직:
+            1. 유저가 선택한 관심 컨텍스트 카테고리(최대 3개)를 조회
+            2. 각 컨텍스트 카테고리별로
+               - 위시리스트 개수 기준 내림차순 정렬
+               - 상위 10개 팩을 조회
+            3. 각 컨텍스트 카테고리별 상위 10개 중
+               - 랜덤으로 3개의 팩을 선택하여 반환
+            
+            응답 형태:
+            - Key: 컨텍스트 카테고리 ID
+            - Value: 해당 카테고리에서 추천된 팩 리스트 (최대 3개)
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "팩 추천 조회 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    example = """
+                                {
+                                  "1": [
+                                    {
+                                      "id": 10,
+                                      "title": "여행 갈 때 꼭 필요한 팩",
+                                      "contextCategory": "여행/문화",
+                                      "nickname": "닉네임1",
+                                      "items": 5,
+                                      "imageUrl": "https://cdn.example.com/item/image1.jpg"
+                                    },
+                                    {
+                                      "id": 12,
+                                      "title": "기내용 미니멀 팩",
+                                      "contextCategory": "여행/문화",
+                                      "nickname": "닉네임2",
+                                      "items": 4,
+                                      "imageUrl": "https://cdn.example.com/item/image2.jpg"
+                                    }
+                                  ],
+                                  "2": [
+                                    {
+                                      "id": 21,
+                                      "title": "헬스장 필수 아이템",
+                                      "contextCategory": "운동/건강",
+                                      "nickname": "닉네임3",
+                                      "items": 6,
+                                      "imageUrl": "https://cdn.example.com/item/image3.jpg"
+                                    }
+                                  ]
+                                }
+                                """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class
+                            )
+                    )
+            )
+    })
     @GetMapping("/recommendation")
     public Map<Long, List<PackRecommendationResponse>> recommendPacks(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        return null;
+        return getPacksUseCase.findTopByContextCategory(userDetails.getUser());
     }
 }

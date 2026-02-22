@@ -70,6 +70,9 @@ public class PackPersistenceAdapter implements PackPersistencePort {
 
     @Override
     public List<Pack> recommendPacks(Long contextId) {
-        return packJpaRepository.findTop10WithItemsByContextCategoryId(contextId, PageRequest.of(0, 10));
+        List<Long> topIds = packJpaRepository.findTopPackIdsByContextCategory(contextId,
+                PageRequest.of(0, 10));
+
+        return packJpaRepository.findWithItemsByIds(topIds);
     }
 }
