@@ -14,7 +14,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +36,8 @@ import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
 import whatsinmypack.mvp.application.pack.getlist.GetPacksUseCase;
 import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
 import whatsinmypack.mvp.application.pack.update.UpdatePackUseCase;
+import whatsinmypack.mvp.application.wishlist.AddPackWishListUseCase;
+import whatsinmypack.mvp.application.wishlist.RemovePackWishListUseCase;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
@@ -47,6 +51,8 @@ public class PackController {
     private final SearchPacksUseCase searchPacksUseCase;
     private final GetPacksUseCase getPacksUseCase;
     private final UpdatePackUseCase updatePackUseCase;
+    private final AddPackWishListUseCase addPackWishListUseCase;
+    private final RemovePackWishListUseCase removePackWishListUseCase;
 
     @Operation(
             summary = "팩 생성",
@@ -261,6 +267,35 @@ public class PackController {
     ) {
         Pack pack = updatePackUseCase.update(packId, userDetails.getUser(), request);
         return PackDetailResponse.from(pack);
+    }
+
+    @Operation(summary = "팩 위시리스트 추가", description = "해당 팩을 위시리스트에 추가. pack_wishlists에 (user_id, pack_id) 행이 없으면 생성 후 is_wishlist=1, 있으면 is_wishlist=1로 갱신")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요"),
+            @ApiResponse(responseCode = "404", description = "팩 없음")
+    })
+    @PostMapping("/{packId}/wishlist")
+    public ResponseEntity<Void> addWishlist(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long packId
+    ) {
+        addPackWishListUseCase.add(userDetails.getUserId(), packId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "팩 위시리스트 삭제", description = "해당 팩을 위시리스트에서 제거. pack_wishlists의 is_wishlist=0으로 갱신")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @DeleteMapping("/{packId}/wishlist")
+    public ResponseEntity<Void> removeWishlist(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long packId
+    ) {
+        removePackWishListUseCase.remove(userDetails.getUserId(), packId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(
