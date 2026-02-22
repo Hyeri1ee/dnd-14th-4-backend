@@ -26,7 +26,7 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
         from Pack p
         join p.packItems pi
         join pi.item i
-        left join PackWishList w on w.pack = p
+        left join PackWishList w on w.pack = p and w.isWishlist = true
         where
             (
                p.title like %:q%
@@ -81,7 +81,7 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
         select distinct p
         from Pack p
         left join fetch p.packItems pi
-        left join PackWishList w on w.pack = p
+        left join PackWishList w on w.pack = p and w.isWishlist = true
         where p.contextCategory.id = :contextId
         group by p
         order by count(w.id) desc
@@ -92,7 +92,7 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
     @Query("""
         select p.id
         from Pack p
-        left join PackWishList w on w.pack = p
+        left join PackWishList w on w.pack = p and w.isWishlist = true
         where p.contextCategory.id = :contextId
         group by p.id
         order by count(w.id) desc

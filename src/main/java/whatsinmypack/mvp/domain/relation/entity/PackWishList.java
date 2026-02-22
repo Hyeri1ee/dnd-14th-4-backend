@@ -29,4 +29,12 @@ public class PackWishList extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "is_wishlist", nullable = false)
+    @Builder.Default
+    private Boolean isWishlist = true;
+
+    public void setWishlist(boolean wishlist) {
+        this.isWishlist = wishlist;
+    }
 }
