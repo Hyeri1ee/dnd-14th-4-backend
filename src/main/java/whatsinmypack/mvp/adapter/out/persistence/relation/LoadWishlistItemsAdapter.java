@@ -16,7 +16,7 @@ public class LoadWishlistItemsAdapter implements LoadWishlistItemsPort {
 
     @Override
     public List<Item> loadByUserId(Long userId) {
-        return itemWishListJpaRepository.findByUser_IdAndIsWishlistTrueWithItem(userId).stream()
+        return itemWishListJpaRepository.findByUser_IdAndIsWishlistTrue(userId).stream()
                 .map(ItemWishList::getItem)
                 .toList();
     }

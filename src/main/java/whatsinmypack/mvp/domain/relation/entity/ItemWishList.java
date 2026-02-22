@@ -31,6 +31,7 @@ public class ItemWishList extends BaseEntity{
     private User user;
 
     @Column(name = "is_wishlist", nullable = false)
+    @Builder.Default
     private Boolean isWishlist = true;
 
     public void setWishlist(boolean wishlist) {

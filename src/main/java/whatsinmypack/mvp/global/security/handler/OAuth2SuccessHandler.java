@@ -26,7 +26,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${client.url}")
     private String clientUrl;
 
-    @Value("${client.deployUrl}")
+    @Value("${client.deployUrl:${client.url}}")
     private String clientDeployUrl;
 
     private final JwtTokenProvider jwtTokenProvider;
