@@ -21,6 +21,13 @@ public class PackPersistenceAdapter implements PackPersistencePort {
     private final PackJpaRepository packJpaRepository;
 
     @Override
+    public Pack findById(Long id) {
+        return packJpaRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("아이디에 대응되는 팩이 없음")
+        );
+    }
+
+    @Override
     public Pack save(Pack pack) {
         return packJpaRepository.save(pack);
     }

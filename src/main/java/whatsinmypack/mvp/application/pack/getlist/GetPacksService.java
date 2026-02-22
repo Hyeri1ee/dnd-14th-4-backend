@@ -27,7 +27,7 @@ public class GetPacksService implements GetPacksUseCase {
 
     @Override
     public Pack findById(Long id) {
-        return null; //TODO: 조회
+        return packPersistencePort.findById(id);
     }
 
     @Override

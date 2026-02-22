@@ -8,6 +8,8 @@ import whatsinmypack.mvp.domain.user.entity.User;
 
 public interface PackPersistencePort {
 
+    Pack findById(Long id);
+
     Pack save(Pack pack);
 
     Slice<Pack> search(

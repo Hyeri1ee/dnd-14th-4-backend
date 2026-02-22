@@ -96,6 +96,47 @@ public class PackController {
         return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser(), request));
     }
 
+    @Operation(
+            summary = "팩 단건 조회",
+            description = """
+            특정 팩의 상세 정보를 조회
+            
+            조회 정보:
+            - 팩 제목
+            - 작성자 닉네임
+            - 작성일
+            - 팩 소개
+            - 컨텍스트 카테고리
+            - 팩에 포함된 아이템 목록
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "팩 조회 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PackDetailResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "팩을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class
+                            )
+                    )
+            )
+    })
+    @GetMapping("/{packId}")
+    public PackDetailResponse getPack(
+            @PathVariable Long packId
+    ) {
+        return PackDetailResponse.from(getPacksUseCase.findById(packId));
+    }
+
     @Operation(summary = "내 팩 전체 조회", description = "로그인한 유저의 작성 팩 목록을 최신순으로 조회")
     @GetMapping
     public List<PackSummaryResponse> getMyPackList(
