@@ -34,6 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         log.info("요청 URI : {}", request.getRequestURI());
         String tokenValue = request.getHeader(AUTHORIZATION_HEADER); // 엑세스 토큰 추출
+        if ("/api/v1/items/new".equals(request.getRequestURI())) {
+            log.debug(
+                    "[upload-auth-check] method={}, contentType={}, hasAuthorizationHeader={}",
+                    request.getMethod(),
+                    request.getContentType(),
+                    tokenValue != null && !tokenValue.isBlank()
+            );
+        }
 
         try {
             // 엑세스 토큰 존재여부 검증
