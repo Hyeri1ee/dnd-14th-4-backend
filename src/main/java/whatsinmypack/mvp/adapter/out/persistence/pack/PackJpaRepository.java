@@ -21,6 +21,17 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
     @Query("update Pack p set p.user = null where p.user.id = :userId")
     void clearUserReference(@Param("userId") Long userId);
 
+    @Query("""
+        select distinct p
+        from Pack p
+        left join fetch p.user
+        left join fetch p.contextCategory
+        left join fetch p.packItems
+        where p.contextCategory.id = :contextId
+        order by p.createdAt desc
+    """)
+    List<Pack> findLatestByContextCategoryId(@Param("contextId") Long contextId, Pageable pageable);
+
     /**
      * step 1 : wishlist 카운팅 기반 정렬(무한스크롤 페이징 정렬)
      * @param q

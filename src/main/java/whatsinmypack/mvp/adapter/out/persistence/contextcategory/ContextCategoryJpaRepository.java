@@ -6,4 +6,6 @@ import whatsinmypack.mvp.domain.contextCategory.entity.ContextCategory;
 
 public interface ContextCategoryJpaRepository extends JpaRepository<ContextCategory, Long> {
     Optional<ContextCategory> findByName(String name);
+
+    java.util.List<ContextCategory> findAllByOrderByIdAsc();
 }

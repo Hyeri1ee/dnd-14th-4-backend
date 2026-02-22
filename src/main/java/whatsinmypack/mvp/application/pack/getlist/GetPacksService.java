@@ -3,6 +3,7 @@ package whatsinmypack.mvp.application.pack.getlist;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackRecommendationResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
+import whatsinmypack.mvp.adapter.out.persistence.contextcategory.ContextCategoryJpaRepository;
 import whatsinmypack.mvp.adapter.out.persistence.relation.UserContextCategoryJpaRepository;
 import whatsinmypack.mvp.domain.contextCategory.entity.ContextCategory;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
@@ -24,6 +27,7 @@ public class GetPacksService implements GetPacksUseCase {
 
     private final PackPersistencePort packPersistencePort;
     private final UserContextCategoryJpaRepository userContextCategoryJpaRepository;
+    private final ContextCategoryJpaRepository contextCategoryJpaRepository;
 
     @Override
     public Pack findById(Long id) {
@@ -70,6 +74,26 @@ public class GetPacksService implements GetPacksUseCase {
 
             // 3. 결과 저장
             result.put(contextCategory.getId(), picked);
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<String, List<PackSummaryResponse>> findLatestTop3ByContextCategory() {
+        Map<String, List<PackSummaryResponse>> result = new LinkedHashMap<>();
+        List<ContextCategory> categories = contextCategoryJpaRepository.findAllByOrderByIdAsc();
+
+        for (ContextCategory category : categories) {
+            List<PackSummaryResponse> packs = packPersistencePort
+                    .findTop3LatestByContextCategory(category.getId())
+                    .stream()
+                    .map(pack -> PackSummaryResponse.from(
+                            pack,
+                            pack.getUser() != null ? pack.getUser().getNickname() : null
+                    ))
+                    .toList();
+            result.put(category.getName(), packs);
         }
 
         return result;
