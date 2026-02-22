@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,10 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.adapter.in.web.pack.req.CreatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.req.UpdatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackDetailResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.PackRecommendationResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
-import whatsinmypack.mvp.application.pack.getlist.GetUserPacksUseCase;
+import whatsinmypack.mvp.application.pack.getlist.GetPacksUseCase;
 import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
 import whatsinmypack.mvp.application.pack.update.UpdatePackUseCase;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
@@ -42,7 +44,7 @@ public class PackController {
 
     private final CreatePackUseCase createPackUseCase;
     private final SearchPacksUseCase searchPacksUseCase;
-    private final GetUserPacksUseCase getUserPacksUseCase;
+    private final GetPacksUseCase getPacksUseCase;
     private final UpdatePackUseCase updatePackUseCase;
 
     @Operation(
@@ -98,7 +100,7 @@ public class PackController {
     public List<PackSummaryResponse> getMyPackList(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        return getUserPacksUseCase.findUserPacks(userDetails.getUser())
+        return getPacksUseCase.findUserPacks(userDetails.getUser())
                 .stream()
                 .map(e -> PackSummaryResponse.from(e, userDetails.getUser().getNickname()))
                 .toList();
@@ -217,5 +219,12 @@ public class PackController {
     ) {
         Pack pack = updatePackUseCase.update(packId, userDetails.getUser(), request);
         return PackDetailResponse.from(pack);
+    }
+
+    @GetMapping("/recommendation")
+    public Map<Long, List<PackRecommendationResponse>> recommendPacks(
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return null;
     }
 }

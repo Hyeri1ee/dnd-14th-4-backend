@@ -11,12 +11,22 @@ import whatsinmypack.mvp.domain.user.entity.User;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class GetUserPacksService implements GetUserPacksUseCase {
+public class GetPacksService implements GetPacksUseCase {
 
     private final PackPersistencePort packPersistencePort;
 
     @Override
+    public Pack findById(Long id) {
+        return null; //TODO: 조회
+    }
+
+    @Override
     public List<Pack> findUserPacks(User user) {
         return packPersistencePort.findUserPacks(user);
+    }
+
+    @Override
+    public List<Pack> findTopByContextCategory(List<Long> contextCategoryIds, int limit) {
+        return null;
     }
 }
