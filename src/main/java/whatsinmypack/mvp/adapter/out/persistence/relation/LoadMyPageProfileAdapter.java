@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import whatsinmypack.mvp.application.mypage.MyPageProfile;
 import whatsinmypack.mvp.application.mypage.port.LoadMyPageProfilePort;
 import whatsinmypack.mvp.domain.relation.entity.UserContextCategory;
+import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.domain.user.port.LoadUserPort;
 
 import java.util.List;
@@ -20,16 +21,18 @@ public class LoadMyPageProfileAdapter implements LoadMyPageProfilePort {
 
     @Override
     public MyPageProfile loadByUserId(Long userId) {
-        String profileImageUrl = loadUserPort.findById(userId)
-                .map(user -> resolveProfileImageUrl(user.getProfileImage(), userId))
+        User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userId=" + userId));
+
+        String name = user.getNickname();
+        String profileImageUrl = resolveProfileImageUrl(user.getProfileImage(), userId);
 
         List<String> categoryNames = userContextCategoryJpaRepository.findByUserId(userId).stream()
                 .map(UserContextCategory::getContextCategory)
                 .map(cc -> cc.getName() != null ? cc.getName() : "")
                 .toList();
 
-        return new MyPageProfile(profileImageUrl, categoryNames);
+        return new MyPageProfile(name, profileImageUrl, categoryNames);
     }
 
     /**
