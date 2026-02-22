@@ -8,6 +8,8 @@ import java.util.List;
 public record MyPageProfile(
         String name,
         String profileImageUrl,
+        String gender,
+        String age,
         List<String> contextCategoryNames
 ) {
 }
