@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,10 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.adapter.in.web.pack.req.CreatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.req.UpdatePackRequest;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackDetailResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.PackRecommendationResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.SlicePackResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
-import whatsinmypack.mvp.application.pack.getlist.GetUserPacksUseCase;
+import whatsinmypack.mvp.application.pack.getlist.GetPacksUseCase;
 import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
 import whatsinmypack.mvp.application.pack.update.UpdatePackUseCase;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
@@ -42,7 +45,7 @@ public class PackController {
 
     private final CreatePackUseCase createPackUseCase;
     private final SearchPacksUseCase searchPacksUseCase;
-    private final GetUserPacksUseCase getUserPacksUseCase;
+    private final GetPacksUseCase getPacksUseCase;
     private final UpdatePackUseCase updatePackUseCase;
 
     @Operation(
@@ -93,12 +96,53 @@ public class PackController {
         return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser(), request));
     }
 
+    @Operation(
+            summary = "팩 단건 조회",
+            description = """
+            특정 팩의 상세 정보를 조회
+            
+            조회 정보:
+            - 팩 제목
+            - 작성자 닉네임
+            - 작성일
+            - 팩 소개
+            - 컨텍스트 카테고리
+            - 팩에 포함된 아이템 목록
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "팩 조회 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PackDetailResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "팩을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class
+                            )
+                    )
+            )
+    })
+    @GetMapping("/{packId}")
+    public PackDetailResponse getPack(
+            @PathVariable Long packId
+    ) {
+        return PackDetailResponse.from(getPacksUseCase.findById(packId));
+    }
+
     @Operation(summary = "내 팩 전체 조회", description = "로그인한 유저의 작성 팩 목록을 최신순으로 조회")
     @GetMapping
     public List<PackSummaryResponse> getMyPackList(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        return getUserPacksUseCase.findUserPacks(userDetails.getUser())
+        return getPacksUseCase.findUserPacks(userDetails.getUser())
                 .stream()
                 .map(e -> PackSummaryResponse.from(e, userDetails.getUser().getNickname()))
                 .toList();
@@ -149,7 +193,7 @@ public class PackController {
             )
     })
     @GetMapping("/search")
-    public SliceResponse<PackDetailResponse> searchPacks(
+    public SlicePackResponse searchPacks(
             @RequestParam String q,
             @RequestParam(required = false) List<String> contexts,
             @RequestParam(defaultValue = "0") int page,
@@ -158,7 +202,7 @@ public class PackController {
         Pageable pageable = PageRequest.of(page, size);
         Slice<Pack> slice = searchPacksUseCase.search(q, contexts, pageable);
 
-        return SliceResponse.from(slice.map(PackDetailResponse::from));
+        return SlicePackResponse.from(SliceResponse.from(slice.map(PackDetailResponse::from)));
     }
 
     @Operation(
@@ -217,5 +261,83 @@ public class PackController {
     ) {
         Pack pack = updatePackUseCase.update(packId, userDetails.getUser(), request);
         return PackDetailResponse.from(pack);
+    }
+
+    @Operation(
+            summary = "팩 추천 조회",
+            description = """
+            로그인한 유저의 관심 컨텍스트 카테고리를 기준으로 팩을 추천
+            
+            추천 로직:
+            1. 유저가 선택한 관심 컨텍스트 카테고리(최대 3개)를 조회
+            2. 각 컨텍스트 카테고리별로
+               - 위시리스트 개수 기준 내림차순 정렬
+               - 상위 10개 팩을 조회
+            3. 각 컨텍스트 카테고리별 상위 10개 중
+               - 랜덤으로 3개의 팩을 선택하여 반환
+            
+            응답 형태:
+            - Key: 컨텍스트 카테고리 ID
+            - Value: 해당 카테고리에서 추천된 팩 리스트 (최대 3개)
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "팩 추천 조회 성공",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    example = """
+                                {
+                                  "1": [
+                                    {
+                                      "id": 10,
+                                      "title": "여행 갈 때 꼭 필요한 팩",
+                                      "contextCategory": "여행/문화",
+                                      "nickname": "닉네임1",
+                                      "items": 5,
+                                      "imageUrl": "https://cdn.example.com/item/image1.jpg"
+                                    },
+                                    {
+                                      "id": 12,
+                                      "title": "기내용 미니멀 팩",
+                                      "contextCategory": "여행/문화",
+                                      "nickname": "닉네임2",
+                                      "items": 4,
+                                      "imageUrl": "https://cdn.example.com/item/image2.jpg"
+                                    }
+                                  ],
+                                  "2": [
+                                    {
+                                      "id": 21,
+                                      "title": "헬스장 필수 아이템",
+                                      "contextCategory": "운동/건강",
+                                      "nickname": "닉네임3",
+                                      "items": 6,
+                                      "imageUrl": "https://cdn.example.com/item/image3.jpg"
+                                    }
+                                  ]
+                                }
+                                """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 필요",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    implementation = whatsinmypack.mvp.presentation.response.ApiResponse.class
+                            )
+                    )
+            )
+    })
+    @GetMapping("/recommendation")
+    public Map<Long, List<PackRecommendationResponse>> recommendPacks(
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return getPacksUseCase.findTopByContextCategory(userDetails.getUser());
     }
 }

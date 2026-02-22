@@ -70,4 +70,35 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
         where p.id = :packId
     """)
     Optional<Pack> findByIdWithItems(@Param("packId") Long packId);
+
+    /**
+     * 메인 팩 추천 화면 -> 아이템 이미지가 필요할 것 같아서 페치 조인
+     * @param contextId
+     * @param pageable
+     * @return
+     */
+    @Query("""
+        select distinct p
+        from Pack p
+        left join fetch p.packItems pi
+        left join PackWishList w on w.pack = p
+        where p.contextCategory.id = :contextId
+        group by p
+        order by count(w.id) desc
+    """)
+    List<Pack> findTop10WithItemsByContextCategoryId(@Param("contextId") Long contextId, Pageable pageable);
+
+    // step 1 : 팩아이디 정렬 및 리미트 카운팅 조회 -> step 2는 위의 정의된 메소드 활용
+    @Query("""
+        select p.id
+        from Pack p
+        left join PackWishList w on w.pack = p
+        where p.contextCategory.id = :contextId
+        group by p.id
+        order by count(w.id) desc
+    """)
+    List<Long> findTopPackIdsByContextCategory(
+            @Param("contextId") Long contextId,
+            Pageable pageable
+    );
 }

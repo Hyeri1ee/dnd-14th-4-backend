@@ -8,6 +8,8 @@ import whatsinmypack.mvp.domain.user.entity.User;
 
 public interface PackPersistencePort {
 
+    Pack findById(Long id);
+
     Pack save(Pack pack);
 
     Slice<Pack> search(
@@ -19,4 +21,6 @@ public interface PackPersistencePort {
     List<Pack> findUserPacks(User user);
 
     Pack findByIdWithItems(Long packId);
+
+    List<Pack> recommendPacks(Long contextId);
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -18,6 +19,13 @@ import whatsinmypack.mvp.domain.user.entity.User;
 public class PackPersistenceAdapter implements PackPersistencePort {
 
     private final PackJpaRepository packJpaRepository;
+
+    @Override
+    public Pack findById(Long id) {
+        return packJpaRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("아이디에 대응되는 팩이 없음")
+        );
+    }
 
     @Override
     public Pack save(Pack pack) {
@@ -65,5 +73,13 @@ public class PackPersistenceAdapter implements PackPersistencePort {
     public Pack findByIdWithItems(Long packId) {
         return packJpaRepository.findByIdWithItems(packId)
                 .orElseThrow(() -> new IllegalArgumentException("팩을 찾을 수 없습니다."));
+    }
+
+    @Override
+    public List<Pack> recommendPacks(Long contextId) {
+        List<Long> topIds = packJpaRepository.findTopPackIdsByContextCategory(contextId,
+                PageRequest.of(0, 10));
+
+        return packJpaRepository.findWithItemsByIds(topIds);
     }
 }
