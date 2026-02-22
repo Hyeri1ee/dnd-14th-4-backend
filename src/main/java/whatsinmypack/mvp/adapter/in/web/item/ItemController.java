@@ -116,6 +116,19 @@ public class ItemController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "아이템 단건 조회", description = "itemId로 아이템 상세 정보를 조회")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "아이템 없음")
+    })
+    @GetMapping("/{itemId}")
+    public ResponseEntity<ItemSummaryResponse> getItemById(
+            @PathVariable Long itemId
+    ) {
+        Item item = getUserItemsUseCase.getItemById(itemId);
+        return ResponseEntity.ok(ItemSummaryResponse.from(item));
+    }
+
     @Operation(summary = "아이템 위시리스트 추가", description = "해당 아이템을 위시리스트에 추가. item_wishlists에 (user_id, item_id) 행이 없으면 생성 후 is_wishlist=1, 있으면 is_wishlist=1로 갱신")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),

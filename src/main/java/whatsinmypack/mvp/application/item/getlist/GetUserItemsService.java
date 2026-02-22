@@ -19,4 +19,10 @@ public class GetUserItemsService implements GetUserItemsUseCase {
     public List<Item> getItemsByUserId(Long userId) {
         return itemPersistencePort.findByUserIdOrderByCreatedAtDesc(userId);
     }
+
+    @Override
+    public Item getItemById(Long itemId) {
+        return itemPersistencePort.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("아이템을 찾을 수 없습니다. id=" + itemId));
+    }
 }
