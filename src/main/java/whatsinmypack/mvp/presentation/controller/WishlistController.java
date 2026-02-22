@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import whatsinmypack.mvp.adapter.in.web.item.res.ItemSummaryResponse;
+import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
+import whatsinmypack.mvp.application.wishlist.GetWishlistPacksUseCase;
 import whatsinmypack.mvp.application.wishlist.GetWishlistItemsUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
+import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.List;
 public class WishlistController {
 
     private final GetWishlistItemsUseCase getWishlistItemsUseCase;
+    private final GetWishlistPacksUseCase getWishlistPacksUseCase;
 
     @Operation(summary = "위시리스트 아이템 조회", description = "로그인 유저가 위시리스트로 설정한(is_wishlist=true) 아이템만 item_id로 item 테이블에서 조회해 목록 반환. 응답 형식은 내 아이템 조회와 동일.")
     @ApiResponses({
@@ -35,5 +39,23 @@ public class WishlistController {
     public ResponseEntity<List<ItemSummaryResponse>> getWishlistItems(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         List<Item> items = getWishlistItemsUseCase.getItemsByUserId(userDetails.getUserId());
         return ResponseEntity.ok(items.stream().map(ItemSummaryResponse::from).toList());
+    }
+
+    @Operation(summary = "위시리스트 팩 조회", description = "로그인 유저가 위시리스트로 설정한(is_wishlist=true) 팩만 pack_id로 pack 테이블에서 조회해 목록 반환. 응답 형식은 내 팩 조회와 동일.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(schema = @Schema(implementation = PackSummaryResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @GetMapping("/packs")
+    public ResponseEntity<List<PackSummaryResponse>> getWishlistPacks(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<Pack> packs = getWishlistPacksUseCase.getPacksByUserId(userDetails.getUserId());
+        return ResponseEntity.ok(
+                packs.stream()
+                        .map(pack -> PackSummaryResponse.from(
+                                pack,
+                                pack.getUser() != null ? pack.getUser().getNickname() : null
+                        ))
+                        .toList()
+        );
     }
 }

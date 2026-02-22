@@ -26,13 +26,15 @@ public class LoadMyPageProfileAdapter implements LoadMyPageProfilePort {
 
         String name = user.getNickname();
         String profileImageUrl = resolveProfileImageUrl(user.getProfileImage(), userId);
+        String gender = user.getGender() != null ? user.getGender().name() : null;
+        String age = user.getAgeGroup() != null ? user.getAgeGroup().name() : null;
 
         List<String> categoryNames = userContextCategoryJpaRepository.findByUserId(userId).stream()
                 .map(UserContextCategory::getContextCategory)
                 .map(cc -> cc.getName() != null ? cc.getName() : "")
                 .toList();
 
-        return new MyPageProfile(name, profileImageUrl, categoryNames);
+        return new MyPageProfile(name, profileImageUrl, gender, age, categoryNames);
     }
 
     /**

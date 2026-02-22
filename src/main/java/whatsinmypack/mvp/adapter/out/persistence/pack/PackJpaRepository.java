@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
@@ -15,6 +16,10 @@ public interface PackJpaRepository extends JpaRepository<Pack, Long> {
     // TODO: 검색 결과 및 조회 join 네이티브 쿼리
 
     List<Pack> findByUser(User user);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Pack p set p.user = null where p.user.id = :userId")
+    void clearUserReference(@Param("userId") Long userId);
 
     /**
      * step 1 : wishlist 카운팅 기반 정렬(무한스크롤 페이징 정렬)

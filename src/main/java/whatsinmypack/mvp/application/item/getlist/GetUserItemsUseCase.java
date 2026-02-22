@@ -7,4 +7,6 @@ import java.util.List;
 public interface GetUserItemsUseCase {
 
     List<Item> getItemsByUserId(Long userId);
+
+    Item getItemById(Long itemId);
 }
