@@ -1,12 +1,14 @@
 package whatsinmypack.mvp.adapter.in.web.item;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import whatsinmypack.mvp.adapter.in.web.item.req.CreateItemRequest;
 import whatsinmypack.mvp.adapter.in.web.item.req.UpdateItemRequest;
 import whatsinmypack.mvp.adapter.in.web.item.res.CreateItemResponse;
@@ -36,7 +39,9 @@ import whatsinmypack.mvp.application.wishlist.RemoveItemWishListUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 
 @Tag(name = "Item", description = "아이템 관련 컨트롤러")
@@ -50,16 +55,19 @@ public class ItemController {
     private final UpdateItemUseCase updateItemUseCase;
     private final AddItemWishListUseCase addItemWishListUseCase;
     private final RemoveItemWishListUseCase removeItemWishListUseCase;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Validator validator;
 
     @Operation(summary = "아이템 추가", description = "multipart/form-data: request(JSON) + reviewImages(이미지 파일, 선택, 최대 5개). request 파트는 Content-Type: application/json으로 전송")
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateItemResponse> createItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "아이템 생성 요청 (JSON)", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CreateItemRequest.class)))
-            @RequestPart("request") @Valid CreateItemRequest request,
+            @RequestPart("request") byte[] requestBody,
             @Parameter(description = "리뷰 이미지 파일 (선택, 최대 5개)")
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
+        CreateItemRequest request = parseAndValidate(requestBody, CreateItemRequest.class);
         CreateItemCommand command = new CreateItemCommand(
                 userDetails.getUserId(),
                 request.brandName(),
@@ -81,10 +89,11 @@ public class ItemController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long itemId,
             @Parameter(description = "아이템 수정 요청 (JSON)", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UpdateItemRequest.class)))
-            @RequestPart("request") @Valid UpdateItemRequest request,
+            @RequestPart("request") byte[] requestBody,
             @Parameter(description = "리뷰 이미지 파일 (선택, 최대 5개)")
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
+        UpdateItemRequest request = parseAndValidate(requestBody, UpdateItemRequest.class);
         UpdateItemCommand command = new UpdateItemCommand(
                 itemId,
                 userDetails.getUserId(),
@@ -156,5 +165,19 @@ public class ItemController {
     ) {
         removeItemWishListUseCase.remove(userDetails.getUserId(), itemId);
         return ResponseEntity.noContent().build();
+    }
+
+    private <T> T parseAndValidate(byte[] requestBody, Class<T> targetType) {
+        try {
+            T request = objectMapper.readValue(requestBody, targetType);
+            Set<ConstraintViolation<T>> violations = validator.validate(request);
+            if (!violations.isEmpty()) {
+                String message = violations.iterator().next().getMessage();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+            }
+            return request;
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "request 파트는 JSON 형식이어야 합니다.");
+        }
     }
 }
