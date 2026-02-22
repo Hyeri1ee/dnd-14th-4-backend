@@ -82,4 +82,9 @@ public class PackPersistenceAdapter implements PackPersistencePort {
 
         return packJpaRepository.findWithItemsByIds(topIds);
     }
+
+    @Override
+    public List<Pack> findTop3LatestByContextCategory(Long contextId) {
+        return packJpaRepository.findLatestByContextCategoryId(contextId, PageRequest.of(0, 3));
+    }
 }

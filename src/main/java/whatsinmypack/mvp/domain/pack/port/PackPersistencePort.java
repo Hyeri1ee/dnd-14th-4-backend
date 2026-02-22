@@ -23,4 +23,6 @@ public interface PackPersistencePort {
     Pack findByIdWithItems(Long packId);
 
     List<Pack> recommendPacks(Long contextId);
+
+    List<Pack> findTop3LatestByContextCategory(Long contextId);
 }

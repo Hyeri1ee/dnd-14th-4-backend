@@ -375,4 +375,20 @@ public class PackController {
     ) {
         return getPacksUseCase.findTopByContextCategory(userDetails.getUser());
     }
+
+    @Operation(
+            summary = "지금 뜨는 태그별 팩 조회",
+            description = "컨텍스트 카테고리별로 팩을 분류하여 생성일자 최신순 상위 3개를 반환"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
+    @GetMapping("/trending-tags")
+    public Map<String, List<PackSummaryResponse>> getTrendingTagPacks() {
+        return getPacksUseCase.findLatestTop3ByContextCategory();
+    }
 }
