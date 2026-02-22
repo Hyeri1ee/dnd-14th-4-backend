@@ -1,7 +1,5 @@
 package whatsinmypack.mvp.global.config;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +39,9 @@ public class SecurityConfig {
 
     @Value("${client.deployUrl:${client.url}}")
     private String clientDeployUrl;
+
+    @Value("${client.previewOriginPattern:https://*.vercel.app}")
+    private String clientPreviewOriginPattern;
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
@@ -109,8 +110,8 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(clientUrl, clientDeployUrl));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedOriginPatterns(List.of(clientUrl, clientDeployUrl, clientPreviewOriginPattern));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization")); // 프론트엔드 응답 헤더 조회 개방
         configuration.setAllowCredentials(true);
