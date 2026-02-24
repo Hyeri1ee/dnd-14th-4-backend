@@ -97,7 +97,7 @@ public class PackController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = CreatePackRequest.class)))
-            CreatePackRequest request
+            @RequestBody CreatePackRequest request
     ) {
         return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser(), request));
     }
