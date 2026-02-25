@@ -14,4 +14,8 @@ public interface ItemPersistencePort {
     Optional<Item> findById(Long id);
 
     List<Item> findAllByIds(List<Long> ids); // 팩 생성용 item 리스트 조회
+
+    void delete(Item item);
+
+    void clearReferencesByItemId(Long itemId);
 }

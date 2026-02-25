@@ -31,6 +31,7 @@ import whatsinmypack.mvp.adapter.in.web.item.res.ItemSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.UpdateItemResponse;
 import whatsinmypack.mvp.application.item.create.CreateItemCommand;
 import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
+import whatsinmypack.mvp.application.item.delete.DeleteItemUseCase;
 import whatsinmypack.mvp.application.item.getlist.GetUserItemsUseCase;
 import whatsinmypack.mvp.application.item.update.UpdateItemCommand;
 import whatsinmypack.mvp.application.item.update.UpdateItemUseCase;
@@ -53,6 +54,7 @@ public class ItemController {
     private final CreateItemUseCase createItemUseCase;
     private final GetUserItemsUseCase getUserItemsUseCase;
     private final UpdateItemUseCase updateItemUseCase;
+    private final DeleteItemUseCase deleteItemUseCase;
     private final AddItemWishListUseCase addItemWishListUseCase;
     private final RemoveItemWishListUseCase removeItemWishListUseCase;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -109,6 +111,21 @@ public class ItemController {
 
         Item item = updateItemUseCase.update(command);
         return ResponseEntity.ok(UpdateItemResponse.from(item));
+    }
+
+    @Operation(summary = "아이템 삭제", description = "itemId로 내 아이템을 삭제")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "아이템 없음")
+    })
+    @DeleteMapping("/{itemId}")
+    public ResponseEntity<Void> deleteItem(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long itemId
+    ) {
+        deleteItemUseCase.delete(itemId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
     //ItemController - (web) -> ItemSumaryResponse
