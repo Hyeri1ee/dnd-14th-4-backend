@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Component
 public class S3ImageStorageAdapter implements ImageStoragePort {
+    private static final String ITEM_ROOT_PREFIX = "localtest";
 
     private final S3Client s3Client;
     private final String bucket;
@@ -28,8 +29,8 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
     ) {
         this.s3Client = s3Client;
         this.bucket = bucket;
-        this.keyPrefix = keyPrefix.endsWith("/") ? keyPrefix : keyPrefix + "/";
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+        this.keyPrefix = normalizeItemKeyPrefix(keyPrefix);
+        this.baseUrl = normalizeItemBaseUrl(baseUrl);
     }
 
     @Override
@@ -72,5 +73,31 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
         return name.replaceAll("[\\\\/:*?\"<>|]", "_")
                 .replaceAll("\\s+", "_")
                 .trim();
+    }
+
+    private static String normalizeItemKeyPrefix(String configuredKeyPrefix) {
+        String normalized = configuredKeyPrefix == null ? "" : configuredKeyPrefix.trim();
+        normalized = normalized.replaceAll("^/+", "").replaceAll("/+$", "");
+        if (normalized.equals("upload")) {
+            return ITEM_ROOT_PREFIX + "/";
+        }
+        if (normalized.startsWith("upload/")) {
+            return ITEM_ROOT_PREFIX + normalized.substring("upload".length()) + "/";
+        }
+        if (normalized.isBlank()) {
+            return ITEM_ROOT_PREFIX + "/";
+        }
+        return normalized.endsWith("/") ? normalized : normalized + "/";
+    }
+
+    private static String normalizeItemBaseUrl(String configuredBaseUrl) {
+        String normalized = configuredBaseUrl == null ? "" : configuredBaseUrl.trim();
+        normalized = normalized.replaceAll("/+$", "");
+        if (normalized.endsWith("/upload")) {
+            return normalized.substring(0, normalized.length() - "/upload".length()) + "/" + ITEM_ROOT_PREFIX + "/";
+        }
+        return normalized.endsWith("/" + ITEM_ROOT_PREFIX)
+                ? normalized + "/"
+                : normalized + "/" + ITEM_ROOT_PREFIX + "/";
     }
 }
