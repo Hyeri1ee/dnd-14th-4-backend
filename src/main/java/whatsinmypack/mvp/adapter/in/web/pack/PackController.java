@@ -212,6 +212,22 @@ public class PackController {
     }
 
     @Operation(
+            summary = "인기 검색어 조회",
+            description = "검색 횟수 기준으로 인기 키워드 상위 10개를 반환"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
+    @GetMapping("/search/popular-keywords")
+    public ResponseEntity<List<String>> getPopularKeywords() {
+        return ResponseEntity.ok(searchPacksUseCase.getPopularKeywords());
+    }
+
+    @Operation(
             summary = "팩 업데이트",
             description = """
                 로그인한 유저가 자신의 팩을 수정

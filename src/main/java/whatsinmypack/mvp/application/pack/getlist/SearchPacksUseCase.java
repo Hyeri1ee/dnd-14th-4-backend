@@ -11,4 +11,6 @@ public interface SearchPacksUseCase {
             List<String> contextNames,
             Pageable pageable
     );
+
+    List<String> getPopularKeywords();
 }

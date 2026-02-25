@@ -11,6 +11,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Component;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
+import whatsinmypack.mvp.domain.pack.entity.SearchKeyword;
 import whatsinmypack.mvp.domain.pack.port.PackPersistencePort;
 import whatsinmypack.mvp.domain.user.entity.User;
 
@@ -19,6 +20,7 @@ import whatsinmypack.mvp.domain.user.entity.User;
 public class PackPersistenceAdapter implements PackPersistencePort {
 
     private final PackJpaRepository packJpaRepository;
+    private final SearchKeywordJpaRepository searchKeywordJpaRepository;
 
     @Override
     public Pack findById(Long id) {
@@ -62,6 +64,25 @@ public class PackPersistenceAdapter implements PackPersistencePort {
 
         // 5. Slice로 재조립
         return new SliceImpl<>(ordered, pageable, idSlice.hasNext());
+    }
+
+    @Override
+    public void increaseSearchKeywordCount(String keyword) {
+        searchKeywordJpaRepository.findByKeyword(keyword)
+                .ifPresentOrElse(
+                        SearchKeyword::increaseCount,
+                        () -> searchKeywordJpaRepository.save(
+                                SearchKeyword.builder()
+                                        .keyword(keyword)
+                                        .searchCount(1L)
+                                        .build()
+                        )
+                );
+    }
+
+    @Override
+    public List<String> findTop10PopularKeywords() {
+        return searchKeywordJpaRepository.findTopKeywords(PageRequest.of(0, 10));
     }
 
     @Override

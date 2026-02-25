@@ -18,6 +18,10 @@ public interface PackPersistencePort {
             Pageable pageable
     );
 
+    void increaseSearchKeywordCount(String keyword);
+
+    List<String> findTop10PopularKeywords();
+
     List<Pack> findUserPacks(User user);
 
     Pack findByIdWithItems(Long packId);
