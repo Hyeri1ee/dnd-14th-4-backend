@@ -6,6 +6,6 @@ import whatsinmypack.mvp.domain.user.entity.User;
 
 public interface CreatePackUseCase {
 
-    Pack create(User user, CreatePackRequest request);
+    Pack create(Long userId, CreatePackRequest request);
 
 }

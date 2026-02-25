@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import whatsinmypack.mvp.domain.contextCategory.entity.ContextCategory;
+import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.relation.entity.PackItem;
 import whatsinmypack.mvp.domain.user.entity.User;
 import whatsinmypack.mvp.global.entity.BaseEntity;
@@ -50,4 +51,9 @@ public class Pack extends BaseEntity {
     )
     @Builder.Default
     private List<PackItem> packItems = new ArrayList<>();
+
+    public void addPackItem(PackItem packItem) {
+        this.packItems.add(packItem);
+        packItem.setPack(this);
+    }
 }
