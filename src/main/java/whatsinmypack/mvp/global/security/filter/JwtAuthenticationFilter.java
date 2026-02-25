@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
 import whatsinmypack.mvp.global.security.handler.JwtAuthenticationEntryPoint;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
@@ -86,7 +87,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         log.info("필터를 거치지 않는 api 엔드포인트: {}", path);
 
-        return path.equals("/api/hello") ||
+        return HttpMethod.OPTIONS.matches(request.getMethod()) ||
+                path.equals("/api/hello") ||
                 path.equals("/favicon.ico") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/api-docs") ||
