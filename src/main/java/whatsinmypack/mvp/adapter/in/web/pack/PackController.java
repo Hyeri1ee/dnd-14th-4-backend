@@ -99,7 +99,7 @@ public class PackController {
                             schema = @Schema(implementation = CreatePackRequest.class)))
             @RequestBody CreatePackRequest request
     ) {
-        return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser(), request));
+        return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser().getId(), request));
     }
 
     @Operation(

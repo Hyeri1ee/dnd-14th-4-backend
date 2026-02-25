@@ -2,54 +2,67 @@ package whatsinmypack.mvp.application.pack.create;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whatsinmypack.mvp.adapter.in.web.pack.req.CreatePackRequest;
+import whatsinmypack.mvp.adapter.out.persistence.item.ItemJpaRepository;
+import whatsinmypack.mvp.adapter.out.persistence.pack.PackJpaRepository;
+import whatsinmypack.mvp.adapter.out.persistence.relation.PackItemJpaRepository;
 import whatsinmypack.mvp.domain.contextCategory.entity.ContextCategory;
 import whatsinmypack.mvp.domain.contextCategory.port.ContextCategoryPersistencePort;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.item.port.ItemPersistencePort;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
-import whatsinmypack.mvp.domain.pack.port.PackPersistencePort;
 import whatsinmypack.mvp.domain.relation.entity.PackItem;
 import whatsinmypack.mvp.domain.user.entity.User;
+import whatsinmypack.mvp.domain.user.repository.UserRepository;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class CreatePackService implements CreatePackUseCase {
 
-    private final PackPersistencePort packPersistencePort;
+    private final PackJpaRepository packJpaRepository;
+    private final PackItemJpaRepository packItemJpaRepository;
+    private final ItemJpaRepository itemJpaRepository;
+    private final UserRepository userRepository;
     private final ContextCategoryPersistencePort contextCategoryPersistencePort;
-    private final ItemPersistencePort itemPersistencePort;
 
-    @Override
-    public Pack create(User user, CreatePackRequest request) {
+    public Pack create(Long userId, CreatePackRequest request) {
 
-        // 1. ContextCategory 조회 (이름 기반)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+
         ContextCategory contextCategory =
                 contextCategoryPersistencePort.findByName(request.contextCategory());
 
-        // 2. Pack 생성
+        // Pack 먼저 저장 (무조건)
         Pack pack = Pack.builder()
                 .title(request.title())
                 .introduction(request.review())
                 .contextCategory(contextCategory)
+                .user(user)
                 .build();
 
-        // 3. Pack 생명주기 시작 (User 소유)
-        user.addPack(pack);
+        Pack save = packJpaRepository.save(pack);// 여기서 ID 확보
 
-        // 4. Item 조회
-        List<Item> items = itemPersistencePort.findAllByIds(request.items());
+        // Item 조회
+        List<Item> items = itemJpaRepository.findAllById(request.items());
 
-        // 5. PackItem 생성 (관계만 설정)
-        for (Item item : items) {
-            PackItem packItem = new PackItem(pack, item);
-            pack.getPackItems().add(packItem);
-        }
+        // PackItem 직접 생성 + 저장
+        List<PackItem> packItems = request.items().stream()
+                .map(itemId -> {
+                    Item item = itemJpaRepository.getReferenceById(itemId);
+                    return new PackItem(save, item);
+                })
+                .toList();
 
-        // 6. 저장
-        return packPersistencePort.save(pack);
+        List<PackItem> saved = packItemJpaRepository.saveAll(packItems);
+        saved.forEach(save::addPackItem);
+
+        return packJpaRepository.findById(save.getId())
+                .orElseThrow(() -> new IllegalStateException("팩 재조회 실패"));
     }
 }
