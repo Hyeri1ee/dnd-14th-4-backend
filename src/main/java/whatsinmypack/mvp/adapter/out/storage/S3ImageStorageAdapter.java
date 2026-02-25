@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import whatsinmypack.mvp.domain.item.port.ImageStoragePort;
 
@@ -44,6 +45,24 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
                 .filter(f -> f != null && !f.isEmpty())
                 .map(f -> storeOne(f, userId, segmentItemId, segmentItemName))
                 .toList();
+    }
+
+    @Override
+    public void deleteAllByUrls(List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
+        for (String imageUrl : imageUrls) {
+            if (imageUrl == null || imageUrl.isBlank()) {
+                continue;
+            }
+            String key = extractKey(imageUrl);
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build();
+            s3Client.deleteObject(request);
+        }
     }
 
     private String storeOne(MultipartFile file, Long userId, String segmentItemId, String segmentItemName) {
@@ -99,5 +118,16 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
         return normalized.endsWith("/" + ITEM_ROOT_PREFIX)
                 ? normalized + "/"
                 : normalized + "/" + ITEM_ROOT_PREFIX + "/";
+    }
+
+    private String extractKey(String imageUrl) {
+        if (imageUrl.startsWith(baseUrl)) {
+            return imageUrl.substring(baseUrl.length());
+        }
+        int domainEnd = imageUrl.indexOf(".amazonaws.com/");
+        if (domainEnd > -1) {
+            return imageUrl.substring(domainEnd + ".amazonaws.com/".length());
+        }
+        throw new IllegalArgumentException("S3 key 파싱 실패: " + imageUrl);
     }
 }
