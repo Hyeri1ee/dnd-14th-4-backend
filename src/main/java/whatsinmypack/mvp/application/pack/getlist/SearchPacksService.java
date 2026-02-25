@@ -22,6 +22,15 @@ public class SearchPacksService implements SearchPacksUseCase {
             List<String> contextNames,
             Pageable pageable
     ) {
-        return packPersistencePort.search(keyword, contextNames, pageable);
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        if (!normalizedKeyword.isBlank()) {
+            packPersistencePort.increaseSearchKeywordCount(normalizedKeyword);
+        }
+        return packPersistencePort.search(normalizedKeyword, contextNames, pageable);
+    }
+
+    @Override
+    public List<String> getPopularKeywords() {
+        return packPersistencePort.findTop10PopularKeywords();
     }
 }
