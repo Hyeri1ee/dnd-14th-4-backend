@@ -45,4 +45,10 @@ public class GlobalExceptionHandler {
     public ApiResponse handleDuplicateNicknameException(DuplicateNicknameException e) {
         return new ApiResponse(e.getMessage());
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ApiResponse handleIllegalArgumentException(IllegalArgumentException e) {
+        return new ApiResponse(e.getMessage());
+    }
 }
