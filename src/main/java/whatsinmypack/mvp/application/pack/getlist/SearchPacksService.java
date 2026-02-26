@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
@@ -23,9 +24,11 @@ public class SearchPacksService implements SearchPacksUseCase {
             Pageable pageable
     ) {
         String normalizedKeyword = keyword == null ? "" : keyword.trim();
-        if (!normalizedKeyword.isBlank()) {
-            packPersistencePort.increaseSearchKeywordCount(normalizedKeyword);
+        if (normalizedKeyword.isBlank()) {
+            return new SliceImpl<>(List.of(), pageable, false);
         }
+
+        packPersistencePort.increaseSearchKeywordCount(normalizedKeyword);
         return packPersistencePort.search(normalizedKeyword, contextNames, pageable);
     }
 
