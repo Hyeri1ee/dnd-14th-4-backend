@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -99,7 +100,7 @@ public class PackController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = CreatePackRequest.class)))
-            @RequestBody CreatePackRequest request
+            @Valid @RequestBody CreatePackRequest request
     ) {
         return PackDetailResponse.from(createPackUseCase.create(userDetails.getUser().getId(), request));
     }
