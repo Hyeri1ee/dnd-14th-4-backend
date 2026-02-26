@@ -16,7 +16,7 @@ import whatsinmypack.mvp.global.entity.BaseEntity;
 @Builder
 public class ItemImage extends BaseEntity {
 
-    @Lob
+//    @Lob
     @Column(columnDefinition = "TEXT")
     private String path;
 
