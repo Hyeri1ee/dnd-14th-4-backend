@@ -202,7 +202,7 @@ public class PackController {
     })
     @GetMapping("/search")
     public SlicePackResponse searchPacks(
-            @RequestParam String q,
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) List<String> contexts,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
