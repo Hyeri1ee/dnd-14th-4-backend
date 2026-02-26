@@ -12,6 +12,10 @@ public interface PackPersistencePort {
 
     Pack save(Pack pack);
 
+    void delete(Pack pack);
+
+    void clearReferencesByPackId(Long packId);
+
     Slice<Pack> search(
             String keyword,
             List<String> contextNames,

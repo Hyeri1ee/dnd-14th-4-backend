@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Component;
+import whatsinmypack.mvp.adapter.out.persistence.relation.PackWishListJpaRepository;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.domain.pack.entity.SearchKeyword;
 import whatsinmypack.mvp.domain.pack.port.PackPersistencePort;
@@ -21,6 +22,7 @@ public class PackPersistenceAdapter implements PackPersistencePort {
 
     private final PackJpaRepository packJpaRepository;
     private final SearchKeywordJpaRepository searchKeywordJpaRepository;
+    private final PackWishListJpaRepository packWishListJpaRepository;
 
     @Override
     public Pack findById(Long id) {
@@ -32,6 +34,16 @@ public class PackPersistenceAdapter implements PackPersistencePort {
     @Override
     public Pack save(Pack pack) {
         return packJpaRepository.save(pack);
+    }
+
+    @Override
+    public void delete(Pack pack) {
+        packJpaRepository.delete(pack);
+    }
+
+    @Override
+    public void clearReferencesByPackId(Long packId) {
+        packWishListJpaRepository.deleteByPack_Id(packId);
     }
 
     @Override

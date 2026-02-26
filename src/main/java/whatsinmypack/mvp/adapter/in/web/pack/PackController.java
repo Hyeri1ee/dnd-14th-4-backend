@@ -33,6 +33,7 @@ import whatsinmypack.mvp.adapter.in.web.pack.res.PackSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SlicePackResponse;
 import whatsinmypack.mvp.adapter.in.web.pack.res.SliceResponse;
 import whatsinmypack.mvp.application.pack.create.CreatePackUseCase;
+import whatsinmypack.mvp.application.pack.delete.DeletePackUseCase;
 import whatsinmypack.mvp.application.pack.getlist.GetPacksUseCase;
 import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
 import whatsinmypack.mvp.application.pack.update.UpdatePackUseCase;
@@ -51,6 +52,7 @@ public class PackController {
     private final SearchPacksUseCase searchPacksUseCase;
     private final GetPacksUseCase getPacksUseCase;
     private final UpdatePackUseCase updatePackUseCase;
+    private final DeletePackUseCase deletePackUseCase;
     private final AddPackWishListUseCase addPackWishListUseCase;
     private final RemovePackWishListUseCase removePackWishListUseCase;
 
@@ -283,6 +285,21 @@ public class PackController {
     ) {
         Pack pack = updatePackUseCase.update(packId, userDetails.getUser(), request);
         return PackDetailResponse.from(pack);
+    }
+
+    @Operation(summary = "팩 삭제", description = "packId로 내 팩을 삭제")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요"),
+            @ApiResponse(responseCode = "404", description = "팩 없음")
+    })
+    @DeleteMapping("/{packId}")
+    public ResponseEntity<Void> deletePack(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long packId
+    ) {
+        deletePackUseCase.delete(packId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "팩 위시리스트 추가", description = "해당 팩을 위시리스트에 추가. pack_wishlists에 (user_id, pack_id) 행이 없으면 생성 후 is_wishlist=1, 있으면 is_wishlist=1로 갱신")

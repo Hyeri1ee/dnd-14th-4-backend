@@ -15,6 +15,8 @@ public interface PackWishListJpaRepository extends JpaRepository<PackWishList, L
 
     void deleteByUser_Id(Long userId);
 
+    void deleteByPack_Id(Long packId);
+
     @Query("""
         select distinct pw
         from PackWishList pw
