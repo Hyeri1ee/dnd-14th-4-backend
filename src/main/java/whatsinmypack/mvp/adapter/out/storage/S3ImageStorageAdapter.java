@@ -56,6 +56,11 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
             if (imageUrl == null || imageUrl.isBlank()) {
                 continue;
             }
+            // Legacy data can contain numeric-only values (not S3 URLs).
+            // In that case, skip S3 deletion and proceed with item deletion.
+            if (isLegacyImageId(imageUrl)) {
+                continue;
+            }
             String key = extractKey(imageUrl);
             DeleteObjectRequest request = DeleteObjectRequest.builder()
                     .bucket(bucket)
@@ -129,5 +134,9 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
             return imageUrl.substring(domainEnd + ".amazonaws.com/".length());
         }
         throw new IllegalArgumentException("S3 key 파싱 실패: " + imageUrl);
+    }
+
+    private boolean isLegacyImageId(String imageUrl) {
+        return imageUrl.matches("\\d+");
     }
 }
