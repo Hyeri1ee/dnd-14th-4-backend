@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,7 @@ import java.util.Set;
 
 
 @Tag(name = "Item", description = "아이템 관련 컨트롤러")
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/items")
 @RequiredArgsConstructor
@@ -70,6 +72,10 @@ public class ItemController {
             @RequestPart(value = "reviewImages", required = false) List<MultipartFile> reviewImages
     ) {
         CreateItemRequest request = parseAndValidate(requestBody, CreateItemRequest.class);
+        log.info("아이템 생성 요청 리퀘스트 JSON 객체 : {}", request.toString());
+        reviewImages.forEach(
+                        e -> log.info("아이템 생성 요청 이미지 멀티파트파일 리스트 : {}", e.getOriginalFilename()));
+
         CreateItemCommand command = new CreateItemCommand(
                 userDetails.getUserId(),
                 request.brandName(),

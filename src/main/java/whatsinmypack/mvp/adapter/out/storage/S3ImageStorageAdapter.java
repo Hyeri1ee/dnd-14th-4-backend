@@ -1,5 +1,6 @@
 package whatsinmypack.mvp.adapter.out.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class S3ImageStorageAdapter implements ImageStoragePort {
     private static final String ITEM_ROOT_PREFIX = "localtest";
@@ -37,6 +39,7 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
     @Override
     public List<String> store(List<MultipartFile> files, Long userId, Long itemId, String itemName) {
         if (files == null || files.isEmpty()) {
+            log.info("files가 없다네요!");
             return List.of();
         }
         String segmentItemId = itemId != null ? String.valueOf(itemId) : "new";
@@ -71,6 +74,9 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
     }
 
     private String storeOne(MultipartFile file, Long userId, String segmentItemId, String segmentItemName) {
+        log.info("실제 storeOne 메소드 파라미터 모음: \n multipartfile: {} \n userId: {} \n segmentItemId: {} \n segmentItemName: {}",
+                file, userId, segmentItemId, segmentItemName);
+
         String ext = file.getOriginalFilename() != null && file.getOriginalFilename().contains(".")
                 ? file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'))
                 : ".jpg";
@@ -78,6 +84,8 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
         String key = keyPrefix + userId + "/" + segmentItemId + "/" + segmentItemName + "/" + filename;
 
         String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
+        log.info("storeOne 가공된 변수 모음: \n ext: {} \n filename: {} \n contentType: {}", filename, key, contentType);
+
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
@@ -85,6 +93,7 @@ public class S3ImageStorageAdapter implements ImageStoragePort {
                 .build();
         try {
             byte[] bytes = file.getBytes();
+            log.info("파일 잘 들어옴, 파일 사이즈 : {}", bytes.length);
             s3Client.putObject(request, RequestBody.fromBytes(bytes));
         } catch (IOException e) {
             throw new IllegalStateException("S3 이미지 저장 실패: " + file.getOriginalFilename(), e);
