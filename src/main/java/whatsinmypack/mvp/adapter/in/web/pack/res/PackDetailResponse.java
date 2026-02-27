@@ -58,7 +58,7 @@ public record PackDetailResponse(
         )
         List<ItemCapsuleResponse> itemList
 ) {
-    private static final String[] DEFAULT_PROFILE_COLORS = {"blue", "green", "yello", "purple", "pink"};
+    private static final String[] DEFAULT_PROFILE_COLORS = {"blue", "green", "yellow", "purple", "pink"};
 
     public static PackDetailResponse from(Pack pack) {
         return new PackDetailResponse(
