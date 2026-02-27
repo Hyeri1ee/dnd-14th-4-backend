@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +42,10 @@ import whatsinmypack.mvp.application.pack.getlist.SearchPacksUseCase;
 import whatsinmypack.mvp.application.pack.update.UpdatePackUseCase;
 import whatsinmypack.mvp.application.wishlist.AddPackWishListUseCase;
 import whatsinmypack.mvp.application.wishlist.RemovePackWishListUseCase;
+import whatsinmypack.mvp.adapter.out.persistence.relation.ItemWishListJpaRepository;
+import whatsinmypack.mvp.adapter.out.persistence.relation.PackWishListJpaRepository;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
+import whatsinmypack.mvp.domain.relation.entity.PackItem;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
 @Tag(name = "Pack", description = "팩 관련 컨트롤러")
@@ -56,6 +61,8 @@ public class PackController {
     private final DeletePackUseCase deletePackUseCase;
     private final AddPackWishListUseCase addPackWishListUseCase;
     private final RemovePackWishListUseCase removePackWishListUseCase;
+    private final PackWishListJpaRepository packWishListJpaRepository;
+    private final ItemWishListJpaRepository itemWishListJpaRepository;
 
     @Operation(
             summary = "팩 생성",
@@ -141,9 +148,29 @@ public class PackController {
     })
     @GetMapping("/{packId}")
     public PackDetailResponse getPack(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long packId
     ) {
-        return PackDetailResponse.from(getPacksUseCase.findById(packId));
+        Pack pack = getPacksUseCase.findById(packId);
+        Long userId = userDetails.getUserId();
+
+        boolean isPackInWishList = !packWishListJpaRepository
+                .findWishlistedPackIdsByUserIdAndPackIds(userId, List.of(pack.getId()))
+                .isEmpty();
+
+        Set<Long> itemIds = pack.getPackItems().stream()
+                .map(PackItem::getItem)
+                .map(item -> item.getId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        Set<Long> wishlistedItemIds = itemIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(itemWishListJpaRepository.findWishlistedItemIdsByUserIdAndItemIds(
+                userId,
+                List.copyOf(itemIds)
+        ));
+
+        return PackDetailResponse.from(pack, isPackInWishList, wishlistedItemIds);
     }
 
     @Operation(summary = "내 팩 전체 조회", description = "로그인한 유저의 작성 팩 목록을 최신순으로 조회")
@@ -203,6 +230,7 @@ public class PackController {
     })
     @GetMapping("/search")
     public SlicePackResponse searchPacks(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) List<String> contexts,
             @RequestParam(defaultValue = "0") int page,
@@ -210,8 +238,37 @@ public class PackController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         Slice<Pack> slice = searchPacksUseCase.search(q, contexts, pageable);
+        Long userId = userDetails.getUserId();
 
-        return SlicePackResponse.from(SliceResponse.from(slice.map(PackDetailResponse::from)));
+        List<Pack> packs = slice.getContent();
+        Set<Long> packIds = packs.stream()
+                .map(Pack::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        Set<Long> itemIds = packs.stream()
+                .flatMap(pack -> pack.getPackItems().stream())
+                .map(PackItem::getItem)
+                .map(item -> item.getId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        Set<Long> wishlistedPackIds = packIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(packWishListJpaRepository.findWishlistedPackIdsByUserIdAndPackIds(
+                userId,
+                List.copyOf(packIds)
+        ));
+        Set<Long> wishlistedItemIds = itemIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(itemWishListJpaRepository.findWishlistedItemIdsByUserIdAndItemIds(
+                userId,
+                List.copyOf(itemIds)
+        ));
+
+        Slice<PackDetailResponse> mapped = slice.map(pack -> PackDetailResponse.from(
+                pack,
+                wishlistedPackIds.contains(pack.getId()),
+                wishlistedItemIds
+        ));
+        return SlicePackResponse.from(SliceResponse.from(mapped));
     }
 
     @Operation(
@@ -407,7 +464,36 @@ public class PackController {
     public Map<Long, List<PackRecommendationResponse>> recommendPacks(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        return getPacksUseCase.findTopByContextCategory(userDetails.getUser());
+        Map<Long, List<PackRecommendationResponse>> recommendations =
+                getPacksUseCase.findTopByContextCategory(userDetails.getUser());
+
+        Set<Long> packIds = recommendations.values().stream()
+                .flatMap(List::stream)
+                .map(PackRecommendationResponse::id)
+                .collect(java.util.stream.Collectors.toSet());
+
+        Set<Long> wishlistedPackIds = packIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(packWishListJpaRepository.findWishlistedPackIdsByUserIdAndPackIds(
+                userDetails.getUserId(),
+                List.copyOf(packIds)
+        ));
+
+        return recommendations.entrySet().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().stream()
+                                .map(pack -> new PackRecommendationResponse(
+                                        pack.id(),
+                                        pack.title(),
+                                        pack.contextCategory(),
+                                        pack.nickname(),
+                                        pack.items(),
+                                        pack.imageUrl(),
+                                        wishlistedPackIds.contains(pack.id())
+                                ))
+                                .toList()
+                ));
     }
 
     @Operation(

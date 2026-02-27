@@ -1,6 +1,7 @@
 package whatsinmypack.mvp.adapter.in.web.item.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Set;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
 import whatsinmypack.mvp.domain.item.entity.value.ItemTag;
@@ -26,9 +27,15 @@ public record ItemSummaryResponse(
         @Schema(description = "사용 기간")
         String usePeriod,
         @Schema(description = "구매처")
-        String purchaseLocation
+        String purchaseLocation,
+        @Schema(description = "현재 로그인 사용자의 아이템 위시리스트 포함 여부", example = "true")
+        boolean isItemInWishList
 ) {
     public static ItemSummaryResponse from(Item item) {
+        return from(item, Set.of());
+    }
+
+    public static ItemSummaryResponse from(Item item, Set<Long> wishlistedItemIds) {
         List<String> imagePaths = item.getImages().stream()
                 .map(ItemImage::getPath)
                 .toList();
@@ -44,7 +51,8 @@ public record ItemSummaryResponse(
                 imagePaths,
                 tags,
                 item.getUsePeriod() != null ? item.getUsePeriod().name() : null,
-                item.getPurchase()
+                item.getPurchase(),
+                wishlistedItemIds.contains(item.getId())
         );
     }
 }

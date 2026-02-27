@@ -28,4 +28,16 @@ public interface PackWishListJpaRepository extends JpaRepository<PackWishList, L
           and pw.isWishlist = true
     """)
     List<PackWishList> findActiveByUserIdWithPack(@Param("userId") Long userId);
+
+    @Query("""
+        select pw.pack.id
+        from PackWishList pw
+        where pw.user.id = :userId
+          and pw.isWishlist = true
+          and pw.pack.id in :packIds
+    """)
+    List<Long> findWishlistedPackIdsByUserIdAndPackIds(
+            @Param("userId") Long userId,
+            @Param("packIds") List<Long> packIds
+    );
 }

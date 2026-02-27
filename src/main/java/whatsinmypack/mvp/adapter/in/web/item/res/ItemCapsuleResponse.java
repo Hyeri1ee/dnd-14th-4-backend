@@ -1,6 +1,7 @@
 package whatsinmypack.mvp.adapter.in.web.item.res;
 
 import java.util.List;
+import java.util.Set;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
 import whatsinmypack.mvp.domain.item.entity.value.ItemTag;
@@ -14,10 +15,15 @@ public record ItemCapsuleResponse(
         String usePeriod,
         String purchase,
         List<String> imageUrls,
-        List<String> tags
+        List<String> tags,
+        boolean isItemInWishList
 ) {
 
     public static ItemCapsuleResponse from(Item item) {
+        return from(item, Set.of());
+    }
+
+    public static ItemCapsuleResponse from(Item item, Set<Long> wishlistedItemIds) {
         return new ItemCapsuleResponse(
                 item.getId(),
                 item.getTitle(),
@@ -31,7 +37,8 @@ public record ItemCapsuleResponse(
                         .toList(),
                 item.getTags().stream()
                         .map(ItemTag::getTag)
-                        .toList()
+                        .toList(),
+                wishlistedItemIds.contains(item.getId())
         );
     }
 }

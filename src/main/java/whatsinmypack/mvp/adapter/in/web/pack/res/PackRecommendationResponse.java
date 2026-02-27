@@ -1,7 +1,6 @@
 package whatsinmypack.mvp.adapter.in.web.pack.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Objects;
 import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.domain.relation.entity.PackItem;
@@ -43,9 +42,18 @@ public record PackRecommendationResponse(
                 description = "대표 아이템 이미지 URL",
                 example = "https://cdn.example.com/items/image1.jpg"
         )
-        String imageUrl // 대표 이미지이미지
+        String imageUrl, // 대표 이미지이미지
+        @Schema(
+                description = "현재 로그인 사용자의 팩 위시리스트 포함 여부",
+                example = "false"
+        )
+        boolean isPackInWishList
 ) {
     public static PackRecommendationResponse from(Pack pack) {
+        return from(pack, false);
+    }
+
+    public static PackRecommendationResponse from(Pack pack, boolean isPackInWishList) {
         String imageUrl = pack.getPackItems().stream()
                 .findFirst()
                 .map(PackItem::getItem)
@@ -59,7 +67,8 @@ public record PackRecommendationResponse(
                 pack.getContextCategory().getName(),
                 pack.getUser().getNickname(),
                 pack.getPackItems().size(),
-                imageUrl
+                imageUrl,
+                isPackInWishList
         );
     }
 }

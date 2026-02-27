@@ -3,12 +3,14 @@ package whatsinmypack.mvp.adapter.in.web.item;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import java.io.IOException;
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,7 @@ import whatsinmypack.mvp.adapter.in.web.item.req.UpdateItemRequest;
 import whatsinmypack.mvp.adapter.in.web.item.res.CreateItemResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.ItemSummaryResponse;
 import whatsinmypack.mvp.adapter.in.web.item.res.UpdateItemResponse;
+import whatsinmypack.mvp.adapter.out.persistence.relation.ItemWishListJpaRepository;
 import whatsinmypack.mvp.application.item.create.CreateItemCommand;
 import whatsinmypack.mvp.application.item.create.CreateItemUseCase;
 import whatsinmypack.mvp.application.item.delete.DeleteItemUseCase;
@@ -41,7 +44,6 @@ import whatsinmypack.mvp.application.wishlist.RemoveItemWishListUseCase;
 import whatsinmypack.mvp.domain.item.entity.Item;
 import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -59,6 +61,7 @@ public class ItemController {
     private final DeleteItemUseCase deleteItemUseCase;
     private final AddItemWishListUseCase addItemWishListUseCase;
     private final RemoveItemWishListUseCase removeItemWishListUseCase;
+    private final ItemWishListJpaRepository itemWishListJpaRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Validator validator;
 
@@ -142,8 +145,17 @@ public class ItemController {
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         List<Item> items = getUserItemsUseCase.getItemsByUserId(userDetails.getUserId());
+        Set<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        Set<Long> wishlistedItemIds = itemIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(itemWishListJpaRepository.findWishlistedItemIdsByUserIdAndItemIds(
+                        userDetails.getUserId(),
+                        List.copyOf(itemIds)
+                ));
         List<ItemSummaryResponse> response = items.stream()
-                .map(ItemSummaryResponse::from)
+                .map(item -> ItemSummaryResponse.from(item, wishlistedItemIds))
                 .toList();
         return ResponseEntity.ok(response);
     }
@@ -155,10 +167,15 @@ public class ItemController {
     })
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemSummaryResponse> getItemById(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long itemId
     ) {
         Item item = getUserItemsUseCase.getItemById(itemId);
-        return ResponseEntity.ok(ItemSummaryResponse.from(item));
+        Set<Long> wishlistedItemIds = new HashSet<>(itemWishListJpaRepository.findWishlistedItemIdsByUserIdAndItemIds(
+                userDetails.getUserId(),
+                List.of(itemId)
+        ));
+        return ResponseEntity.ok(ItemSummaryResponse.from(item, wishlistedItemIds));
     }
 
     @Operation(summary = "아이템 위시리스트 추가", description = "해당 아이템을 위시리스트에 추가. item_wishlists에 (user_id, item_id) 행이 없으면 생성 후 is_wishlist=1, 있으면 is_wishlist=1로 갱신")
