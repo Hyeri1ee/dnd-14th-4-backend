@@ -1,6 +1,7 @@
 package whatsinmypack.mvp.application.item.create;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import whatsinmypack.mvp.domain.item.port.ImageStoragePort;
@@ -13,6 +14,7 @@ import whatsinmypack.mvp.domain.user.port.LoadUserPort;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class CreateItemService implements CreateItemUseCase {
     public Item create(CreateItemCommand command) {
         User user = loadUserPort.findById(command.userId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. userId=" + command.userId()));
+        log.info("유저 인증은 잘 통과함: {}", user.getEmail());
 
         Item item = Item.builder()
                 .title(command.productName())
@@ -43,6 +46,7 @@ public class CreateItemService implements CreateItemUseCase {
         validateAndAddTags(item, command.tags());
 
         Item savedItem = itemPersistencePort.save(item);
+        log.info("이미지 없이 일단 처음 저장한 아이템: {}", savedItem.getTitle());
 
         List<String> imagePaths = imageStoragePort.store(
                 command.reviewImages(),
@@ -51,8 +55,10 @@ public class CreateItemService implements CreateItemUseCase {
                 command.productName()
         );
         validateAndAddImages(savedItem, imagePaths);
+        Item result = itemPersistencePort.save(savedItem);
+        result.getImages().forEach(e -> log.info("진짜 이미지가 저장됐니? : {}", e.getPath()));
 
-        return itemPersistencePort.save(savedItem);
+        return result;
     }
 
     private void validateAndAddImages(Item item, List<String> paths) {
