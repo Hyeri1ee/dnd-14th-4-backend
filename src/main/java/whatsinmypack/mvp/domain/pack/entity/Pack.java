@@ -30,7 +30,7 @@ import whatsinmypack.mvp.global.entity.BaseEntity;
 @AllArgsConstructor
 public class Pack extends BaseEntity {
 
-    @Column(length = 10)
+    @Column(length = 20)
     private String title; //팩 타이틀
 
     @Column(length = 100)

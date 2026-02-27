@@ -3,6 +3,7 @@ package whatsinmypack.mvp.adapter.in.web.pack.res;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import whatsinmypack.mvp.adapter.in.web.item.res.ItemCapsuleResponse;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.domain.relation.entity.PackItem;
@@ -57,13 +58,15 @@ public record PackDetailResponse(
         )
         List<ItemCapsuleResponse> itemList
 ) {
+    private static final String[] DEFAULT_PROFILE_COLORS = {"blue", "green", "yello", "purple", "pink"};
+
     public static PackDetailResponse from(Pack pack) {
         return new PackDetailResponse(
                 pack.getId(),
                 pack.getUser().getNickname(),
                 pack.getTitle(),
                 pack.getCreatedAt().toLocalDate(),
-                pack.getUser().getProfileImage(),
+                resolveProfileImage(pack.getUser().getProfileImage()),
                 pack.getIntroduction(),
                 pack.getContextCategory().getName(),
                 pack.getPackItems().stream()
@@ -71,5 +74,13 @@ public record PackDetailResponse(
                         .map(ItemCapsuleResponse::from)
                         .toList()
         );
+    }
+
+    private static String resolveProfileImage(String profileImage) {
+        if (profileImage != null && !profileImage.isBlank()) {
+            return profileImage;
+        }
+        int randomIndex = ThreadLocalRandom.current().nextInt(DEFAULT_PROFILE_COLORS.length);
+        return DEFAULT_PROFILE_COLORS[randomIndex];
     }
 }
