@@ -30,7 +30,7 @@ public record ItemCapsuleResponse(
                 item.getBrand(),
                 item.getReview(),
                 item.getSatisfaction().kor(),
-                item.getUsePeriod().kor(),
+                item.getUsePeriod().kor() == null ? "ONE_YEAR_BELOW" : item.getUsePeriod().kor(),
                 item.getPurchase(),
                 item.getImages().stream()
                         .map(ItemImage::getPath)
