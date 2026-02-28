@@ -83,7 +83,7 @@ public class UserProfileController {
         return ResponseEntity.ok(UpdateProfileResponse.from(user));
     }
 
-    @Operation(summary = "마이페이지 > 개인화 정보 설정 (관심 상황 수정)", description = "유저의 관심 상황 교체. 기존 user_context_category 삭제 후 새로 저장. 최대 3개. [1: 공부/시험 2: 면접/취준 3: 업무/출근 4: 약속/데이트 5: 운동/선택 6: 여행/경험 7: 취미/작업 8: 육아/반려동물]")
+    @Operation(summary = "마이페이지 > 개인화 정보 설정 (관심 상황 수정)", description = "유저의 관심 상황 교체. 기존 user_context_category 삭제 후 새로 저장. 최대 3개. [1: 공부/시험 2: 면접/취준 3: 업무/출근 4: 약속/데이트 5: 운동/산책 6: 여행/캠핑 7: 취미/작업 8: 육아/반려동물]")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 (존재하지 않는 카테고리 ID, 3개 초과 등)"),
