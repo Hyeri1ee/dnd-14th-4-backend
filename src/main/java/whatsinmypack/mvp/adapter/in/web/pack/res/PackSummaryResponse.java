@@ -1,7 +1,9 @@
 package whatsinmypack.mvp.adapter.in.web.pack.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import whatsinmypack.mvp.domain.item.entity.value.ItemImage;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
+import whatsinmypack.mvp.domain.relation.entity.PackItem;
 
 @Schema(description = "팩 요약 응답 DTO")
 public record PackSummaryResponse(
@@ -34,15 +36,29 @@ public record PackSummaryResponse(
                 description = "팩에 포함된 아이템 개수",
                 example = "7"
         )
-        Integer items
+        Integer items,
+
+        @Schema(
+                description = "팩에 속한 아이템들 중 하나의 대표 이미지",
+                example = "이미지 경로"
+        )
+        String path
 ) {
     public static PackSummaryResponse from(Pack pack, String nickname) {
+        String imageUrl = pack.getPackItems().stream()
+                .findFirst()
+                .map(PackItem::getItem)
+                .flatMap(item -> item.getImages().stream().findFirst())
+                .map(ItemImage::getPath)
+                .orElse("이미지 경로가 없습니다");
+
         return new PackSummaryResponse(
                 pack.getId(),
                 pack.getTitle(),
                 pack.getContextCategory().getName(),
                 nickname,
-                pack.getPackItems().size()
+                pack.getPackItems().size(),
+                imageUrl
         );
     }
 }
