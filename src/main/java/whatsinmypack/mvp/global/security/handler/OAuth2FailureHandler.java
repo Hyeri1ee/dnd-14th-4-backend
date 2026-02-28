@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
@@ -21,6 +22,12 @@ import whatsinmypack.mvp.presentation.response.ApiResponse;
 @Component
 @RequiredArgsConstructor
 public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler {
+
+    @Value("${client.url}")
+    private String clientUrl;
+
+    @Value("${client.deployUrl:${client.url}}")
+    private String clientDeployUrl;
 
     @Override
     public void onAuthenticationFailure(
@@ -47,7 +54,17 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
         log.error("예외 타입: {}", exception.getClass().getName());
 
         // sendResponseMsg 메소드 활용해서 로그인 실패 응답 보내기
-        sendResponseMsg(response, HttpServletResponse.SC_UNAUTHORIZED, new ApiResponse(errorMessage));
+        String origin = request.getHeader("Origin");
+        boolean isLocalClient = clientUrl.equals(origin);
+
+        log.info("로컬 여부 판단 및 오리진 판단: {}", origin);
+        String redirectUrl = isLocalClient ? clientUrl : clientDeployUrl;
+        log.info("리다이렉팅 Url 결정: {}", redirectUrl);
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.sendRedirect(redirectUrl + "/login/fail");
+//        response.sendRedirect(clientDeployUrl + "/login/fail");
+//        sendResponseMsg(response, HttpServletResponse.SC_UNAUTHORIZED, new ApiResponse(errorMessage));
     }
 
     private void sendResponseMsg(HttpServletResponse response, int statusCode, Object responseBody) throws IOException {

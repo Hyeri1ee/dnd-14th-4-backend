@@ -19,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
 import whatsinmypack.mvp.global.security.handler.JwtAuthenticationEntryPoint;
 import whatsinmypack.mvp.global.security.jwt.JwtTokenProvider;
+import whatsinmypack.mvp.global.security.user.UserDetailsImpl;
 
 @RequiredArgsConstructor
 @Slf4j(topic = "jwtAuthenticationFilter")
@@ -70,6 +71,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(createAuthentication(email));
             SecurityContextHolder.setContext(context);
+            Object principal = context.getAuthentication().getPrincipal();
+            if (principal instanceof UserDetailsImpl userDetails) {
+                request.setAttribute("authenticatedUserId", userDetails.getUserId());
+            }
 
             // 다음 필터 넘기기
             filterChain.doFilter(request, response);

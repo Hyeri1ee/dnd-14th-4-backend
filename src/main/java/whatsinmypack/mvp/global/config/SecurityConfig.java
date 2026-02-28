@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import whatsinmypack.mvp.global.security.filter.JwtAuthenticationFilter;
+import whatsinmypack.mvp.global.security.filter.RequestAccessLogFilter;
 import whatsinmypack.mvp.global.security.handler.CustomLogoutHandler;
 import whatsinmypack.mvp.global.security.handler.JwtAccessDenyHandler;
 import whatsinmypack.mvp.global.security.handler.JwtAuthenticationEntryPoint;
@@ -56,6 +57,7 @@ public class SecurityConfig {
     private final JwtAccessDenyHandler jwtAccessDenyHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomLogoutHandler customLogoutHandler;
+    private final RequestAccessLogFilter requestAccessLogFilter;
 
     // Authentication Manager
     @Bean
@@ -101,6 +103,7 @@ public class SecurityConfig {
         http.addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService, jwtAuthenticationEntryPoint),
                 UsernamePasswordAuthenticationFilter.class); // jwtAuthenticationFilter 추가
+        http.addFilterBefore(requestAccessLogFilter, JwtAuthenticationFilter.class);
 
         // 등록만 해서는 자동 캐치가 안되고, 커스텀 필터가 앞서기 때문에 직접 의존성 주입이 필요하다
         // 로그인 필터는 자동으로 가장 뒤로 가기 때문에 엔트리포인트가 인증 예외 캐치가 가능했던 것

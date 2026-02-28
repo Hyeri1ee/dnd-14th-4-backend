@@ -3,6 +3,8 @@ package whatsinmypack.mvp.adapter.in.web.pack.res;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import whatsinmypack.mvp.adapter.in.web.item.res.ItemCapsuleResponse;
 import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.domain.relation.entity.PackItem;
@@ -55,21 +57,41 @@ public record PackDetailResponse(
         @Schema(
                 description = "팩을 구성하는 아이템 목록"
         )
-        List<ItemCapsuleResponse> itemList
+        List<ItemCapsuleResponse> itemList,
+        @Schema(
+                description = "현재 로그인 사용자의 팩 위시리스트 포함 여부",
+                example = "true"
+        )
+        boolean isPackInWishList
 ) {
+    private static final String[] DEFAULT_PROFILE_COLORS = {"blue", "green", "yellow", "purple", "pink"};
+
     public static PackDetailResponse from(Pack pack) {
+        return from(pack, false, Set.of());
+    }
+
+    public static PackDetailResponse from(Pack pack, boolean isPackInWishList, Set<Long> wishlistedItemIds) {
         return new PackDetailResponse(
                 pack.getId(),
                 pack.getUser().getNickname(),
                 pack.getTitle(),
                 pack.getCreatedAt().toLocalDate(),
-                pack.getUser().getProfileImage(),
+                resolveProfileImage(pack.getUser().getProfileImage()),
                 pack.getIntroduction(),
                 pack.getContextCategory().getName(),
                 pack.getPackItems().stream()
                         .map(PackItem::getItem)
-                        .map(ItemCapsuleResponse::from)
-                        .toList()
+                        .map(item -> ItemCapsuleResponse.from(item, wishlistedItemIds))
+                        .toList(),
+                isPackInWishList
         );
+    }
+
+    private static String resolveProfileImage(String profileImage) {
+        if (profileImage != null && !profileImage.isBlank()) {
+            return profileImage;
+        }
+        int randomIndex = ThreadLocalRandom.current().nextInt(DEFAULT_PROFILE_COLORS.length);
+        return DEFAULT_PROFILE_COLORS[randomIndex];
     }
 }
