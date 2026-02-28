@@ -46,6 +46,7 @@ public class GlobalExceptionHandler {
         return new ApiResponse(e.getMessage());
     }
 
+    // 길이 초과 예외
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public ApiResponse handleIllegalArgumentException(IllegalArgumentException e) {
