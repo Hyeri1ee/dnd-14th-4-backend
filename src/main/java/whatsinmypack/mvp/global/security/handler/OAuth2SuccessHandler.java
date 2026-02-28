@@ -46,7 +46,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         response.addHeader(AUTHORIZATION_HEADER, accessToken);
 
         // 엑세스 토큰 URL 삽입 및 리다이렉션
-        response.sendRedirect(clientDeployUrl + "/login/success?access_token=" + accessToken);
+
+        String origin = request.getHeader("Origin");
+        boolean isLocalClient = clientUrl.equals(origin);
+
+        log.info("로컬 여부 판단 및 오리진 판단: {}", origin);
+        String redirectUrl = isLocalClient ? clientUrl : clientDeployUrl;
+        log.info("리다이렉팅 Url 결정: {}", redirectUrl);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.sendRedirect(redirectUrl + "/login/success?access_token=" + accessToken);
+//        response.sendRedirect(clientDeployUrl + "/login/success?access_token=" + accessToken);
 
         // sendResponseMsg 메소드 활용해서 로그인 성공 응답 보내기
 //        sendResponseMsg(response, HttpServletResponse.SC_OK, new ApiResponse("로그인에 성공했습니다."));
