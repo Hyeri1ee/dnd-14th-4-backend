@@ -76,8 +76,8 @@ public class ItemController {
     ) {
         CreateItemRequest request = parseAndValidate(requestBody, CreateItemRequest.class);
         log.info("아이템 생성 요청 리퀘스트 JSON 객체 : {}", request.toString());
-        reviewImages.forEach(
-                        e -> log.info("아이템 생성 요청 이미지 멀티파트파일 리스트 : {}", e.getOriginalFilename()));
+//        reviewImages.forEach(
+//                        e -> log.info("아이템 생성 요청 이미지 멀티파트파일 리스트 : {}", e.getOriginalFilename()));
 
         CreateItemCommand command = new CreateItemCommand(
                 userDetails.getUserId(),
