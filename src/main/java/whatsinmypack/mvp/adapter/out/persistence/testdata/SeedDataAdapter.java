@@ -63,7 +63,7 @@ public class SeedDataAdapter implements SeedDataPort {
     };
     private static final String[] DEFAULT_CONTEXT_NAMES = {
             "공부/시험", "면접/취준", "업무/출근", "약속/데이트",
-            "운동/건강", "여행/문화", "취미/작업", "육아/반려동물"
+            "운동/산책", "여행/캠핑", "취미/작업", "육아/반려동물"
     };
 
     private final UserRepository userRepository;
