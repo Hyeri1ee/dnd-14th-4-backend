@@ -3,7 +3,6 @@ package whatsinmypack.mvp.domain.accesslog.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +26,4 @@ public class RequestAccessLog extends BaseEntity {
     @Column(nullable = false)
     private Integer statusCode;
 
-    @Column(nullable = false)
-    private LocalDateTime requestedAt;
 }
