@@ -14,7 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class ApplicationTestProfileSmokeTest {
+class ApplicationTestProfileTest {
 
     @MockitoBean
     private ClientRegistrationRepository clientRegistrationRepository;
