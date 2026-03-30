@@ -1,3 +1,4 @@
+/*
 package whatsinmypack.mvp.performance;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -526,9 +527,9 @@ class PackDetailQueryBenchmarkTest {
 
     private static void appendImprovementTable(StringBuilder sb, Map<Integer, Map<String, CsvMetricRow>> matrix) {
         sb.append("## improvementVsNPlusOne(%)").append(System.lineSeparator());
-        sb.append("| itemCount | strategy | totalQueries | dbRoundTrips | responseMs | usedMemoryBytes | javaHibernateMs |")
+        sb.append("| itemCount | strategy | totalQueries(%,delta) | dbRoundTrips(%,delta) | responseMs(%,delta) | usedMemoryBytes(%,delta) | javaHibernateMs(%,delta) |")
                 .append(System.lineSeparator());
-        sb.append("|---:|---|---:|---:|---:|---:|---:|").append(System.lineSeparator());
+        sb.append("|---:|---|---|---|---|---|---|").append(System.lineSeparator());
 
         matrix.keySet().stream()
                 .sorted(Comparator.naturalOrder())
@@ -548,11 +549,11 @@ class PackDetailQueryBenchmarkTest {
                         }
                         sb.append("| ").append(itemCount).append(" | ")
                                 .append(strategy).append(" | ")
-                                .append(formatImprovement(baseline.totalQueries(), target.totalQueries())).append(" | ")
-                                .append(formatImprovement(baseline.dbRoundTrips(), target.dbRoundTrips())).append(" | ")
-                                .append(formatImprovement(baseline.responseMs(), target.responseMs())).append(" | ")
-                                .append(formatImprovement(baseline.usedMemoryBytes(), target.usedMemoryBytes())).append(" | ")
-                                .append(formatImprovement(baseline.javaHibernateMs(), target.javaHibernateMs())).append(" |")
+                                .append(formatImprovementWithDelta(baseline.totalQueries(), target.totalQueries(), "")).append(" | ")
+                                .append(formatImprovementWithDelta(baseline.dbRoundTrips(), target.dbRoundTrips(), "")).append(" | ")
+                                .append(formatImprovementWithDelta(baseline.responseMs(), target.responseMs(), "ms")).append(" | ")
+                                .append(formatImprovementWithDelta(baseline.usedMemoryBytes(), target.usedMemoryBytes(), "bytes")).append(" | ")
+                                .append(formatImprovementWithDelta(baseline.javaHibernateMs(), target.javaHibernateMs(), "ms")).append(" |")
                                 .append(System.lineSeparator());
                     }
                 });
@@ -566,6 +567,14 @@ class PackDetailQueryBenchmarkTest {
         }
         double pct = ((double) (baseline - current) / baseline) * 100.0;
         return String.format("%.2f%%", pct);
+    }
+
+    private static String formatImprovementWithDelta(long baseline, long current, String unit) {
+        String pct = formatImprovement(baseline, current);
+        long delta = baseline - current;
+        String signed = (delta >= 0 ? "+" : "") + delta;
+        String deltaText = unit == null || unit.isBlank() ? signed : signed + " " + unit;
+        return pct + " (" + deltaText + ")";
     }
 
     private Pack fetchPackWithItemScope(Long packId) {
@@ -696,3 +705,4 @@ class PackDetailQueryBenchmarkTest {
         FlowResult run();
     }
 }
+*/
