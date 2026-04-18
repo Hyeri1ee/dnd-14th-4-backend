@@ -19,9 +19,8 @@ import whatsinmypack.mvp.domain.pack.entity.Pack;
 import whatsinmypack.mvp.domain.user.entity.AuthProvider;
 import whatsinmypack.mvp.domain.user.entity.User;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
